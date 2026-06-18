@@ -1,10 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpIcon } from "lucide-react";
-import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, type ReactElement, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MentionResolutionProvider } from "@/components/MemoContent/MentionResolutionContext";
-import { deriveDefaultCreateTimeFromFilters } from "@/components/MemoEditor/utils/deriveDefaultCreateTime";
 import { Button } from "@/components/ui/button";
 import { userServiceClient } from "@/connect";
+import type { MemoFilter } from "@/contexts/MemoFilterContext";
 import { useMemoFilterContext } from "@/contexts/MemoFilterContext";
 import { DEFAULT_LIST_MEMOS_PAGE_SIZE } from "@/helpers/consts";
 import { useInfiniteMemos } from "@/hooks/useMemoQueries";
@@ -12,10 +12,28 @@ import { userKeys } from "@/hooks/useUserQueries";
 import { State } from "@/types/proto/api/v1/common_pb";
 import type { Memo } from "@/types/proto/api/v1/memo_service_pb";
 import { useTranslate } from "@/utils/i18n";
-import MemoEditor from "../MemoEditor";
 import MemoFilters from "../MemoFilters";
 import Placeholder from "../Placeholder";
 import Skeleton from "../Skeleton";
+
+const MemoEditor = lazy(() => import("../MemoEditor"));
+
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function deriveDefaultCreateTimeFromFilters(filters: MemoFilter[], now: Date = new Date()): Date | undefined {
+  const dateFilter = filters.find((f) => f.factor === "displayTime");
+  if (!dateFilter) return undefined;
+  const match = DATE_RE.exec(dateFilter.value);
+  if (!match) return undefined;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const candidate = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+  if (candidate.getFullYear() !== year || candidate.getMonth() !== month - 1 || candidate.getDate() !== day) {
+    return undefined;
+  }
+  return candidate;
+}
 
 interface Props {
   renderer: (memo: Memo) => ReactElement;
@@ -157,12 +175,14 @@ const PagedMemoList = (props: Props) => {
         ) : (
           <>
             {showMemoEditor ? (
-              <MemoEditor
-                className="mb-2"
-                cacheKey="home-memo-editor"
-                placeholder={t("editor.any-thoughts")}
-                defaultCreateTime={defaultCreateTime}
-              />
+              <Suspense fallback={null}>
+                <MemoEditor
+                  className="mb-2"
+                  cacheKey="home-memo-editor"
+                  placeholder={t("editor.any-thoughts")}
+                  defaultCreateTime={defaultCreateTime}
+                />
+              </Suspense>
             ) : null}
             <MemoFilters />
             {sortedMemoList.map((memo) => props.renderer(memo))}

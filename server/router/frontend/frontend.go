@@ -22,8 +22,8 @@ var embeddedFiles embed.FS
 
 const (
 	frontendHTMLCacheControl        = "no-cache, no-store, must-revalidate"
-	frontendStaticAssetCacheControl = "public, max-age=3600"
-	frontendHashedAssetCacheControl = "public, max-age=3600, immutable"
+	frontendStaticAssetCacheControl = "public, max-age=604800"
+	frontendHashedAssetCacheControl = "public, max-age=31536000, immutable"
 )
 
 type FrontendService struct {
