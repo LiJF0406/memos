@@ -1,13 +1,10 @@
 import type { Element } from "hast";
-import "katex/dist/katex.min.css";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
 import { isMentionElement, isTagElement, isTaskListItemElement } from "@/types/markdown";
 import { rehypeHeadingId } from "@/utils/rehype-plugins/rehype-heading-id";
 import { remarkDisableSetext } from "@/utils/remark-plugins/remark-disable-setext";
@@ -125,7 +122,6 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: Memo
       <ReactMarkdown
         remarkPlugins={[
           remarkDisableSetext,
-          remarkMath,
           remarkGfm,
           remarkSplitMixedTaskLists,
           remarkBreaks,
@@ -133,12 +129,7 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: Memo
           remarkTag,
           remarkPreserveType,
         ]}
-        rehypePlugins={[
-          rehypeRaw,
-          [rehypeSanitize, SANITIZE_SCHEMA],
-          rehypeHeadingId,
-          [rehypeKatex, { throwOnError: false, strict: false }],
-        ]}
+        rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeHeadingId]}
         components={markdownComponents}
       >
         {content}

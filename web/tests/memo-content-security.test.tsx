@@ -1,11 +1,9 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
 import { describe, expect, it } from "vitest";
 import { SANITIZE_SCHEMA, isTrustedIframeSrc } from "@/components/MemoContent/constants";
 
@@ -21,8 +19,7 @@ const TrustedIframe = (props: IframeProps) => {
 const renderMemoContent = (content: string): string =>
   renderToStaticMarkup(
     <ReactMarkdown
-      remarkPlugins={[remarkMath]}
-      rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], [rehypeKatex, { throwOnError: false, strict: false }]]}
+      rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
       components={{ iframe: TrustedIframe }}
     >
       {content}
@@ -43,13 +40,6 @@ describe("memo content sanitization", () => {
     expect(html).toMatch(/<span>overlay<\/span>/);
     expect(html).not.toMatch(/style=/);
     expect(html).not.toMatch(/position:fixed/);
-  });
-
-  it("still renders KaTeX output after sanitizing math marker classes", () => {
-    const html = renderMemoContent("$L$");
-
-    expect(html).toMatch(/class="katex"/);
-    expect(html).toMatch(/class="katex-html"/);
   });
 
   it("preserves checked state for GFM task list items", () => {
