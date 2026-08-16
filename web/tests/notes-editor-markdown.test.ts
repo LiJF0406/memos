@@ -1,20 +1,35 @@
+import { Placeholder } from "@tiptap/extensions";
 import { Editor } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { Image } from "@/components/Notes/NoteEditor/Image";
+import { LivePreview } from "@/components/Notes/NoteEditor/LivePreview";
 import {
   applyLinkInputRule,
   IMAGE_INPUT_RULE,
   LINK_INPUT_RULE,
+  MarkdownInputRules,
 } from "@/components/Notes/NoteEditor/MarkdownInputRules";
+import { WikiLink as WikiLinkMark } from "@/components/Notes/NoteEditor/WikiLink";
+import { WikiLinkSuggestion } from "@/components/Notes/NoteEditor/WikiLinkSuggestion";
 
-// Headless editor with the same extension set as the notes editor (shared
-// memo extensions + Image), so markdown links/images are exercised end to end.
+// Headless editor with the full notes editor extension set (shared memo
+// extensions + WikiLink + Image + input rules + placeholder + suggestion +
+// live preview), so markdown links/images are exercised end to end and schema
+// regressions (e.g. invalid docs crashing with "contentMatchAt") are caught.
 let editor: Editor | null = null;
 
 function createNoteEditor(content: string): Editor {
   editor = new Editor({
-    extensions: [...buildExtensions(), Image],
+    extensions: [
+      ...buildExtensions(),
+      WikiLinkMark,
+      Image,
+      MarkdownInputRules,
+      Placeholder.configure({ placeholder: "Write something..." }),
+      WikiLinkSuggestion.configure({ getItems: () => [] }),
+      LivePreview,
+    ],
     content,
     contentType: "markdown",
   });
@@ -86,6 +101,37 @@ describe("notes editor markdown links and images", () => {
     expect(ed.getMarkdown().trim()).toBe(
       "正文里的图片：![alt text](https://book.x-zone.site/covers/30255971.jpg) 以及文字",
     );
+  });
+});
+
+// Regression: a lone image line is parsed by @tiptap/markdown as a direct doc
+// child. With an inline image node that produced an invalid ProseMirror doc
+// that crashed on render ("Called contentMatchAt on a node with invalid
+// content") and made previously saved notes unopenable. The image node is a
+// block node (like the official @tiptap/extension-image), so the doc is valid.
+describe("notes editor image schema", () => {
+  it("parses a lone image line into a valid block-level doc", () => {
+    const ed = createNoteEditor("![alt text](https://book.x-zone.site/covers/30255971.jpg)");
+
+    expect(ed.getJSON().content?.[0]).toMatchObject({
+      type: "image",
+      attrs: { src: "https://book.x-zone.site/covers/30255971.jpg", alt: "alt text" },
+    });
+    expect(ed.getMarkdown().trim()).toBe("![alt text](https://book.x-zone.site/covers/30255971.jpg)");
+  });
+
+  it("loads mixed documents with lone images without schema errors", () => {
+    const cases = [
+      "[title](https://www.example.com)\n\n![alt text](https://book.x-zone.site/covers/30255971.jpg)",
+      "| a | b |\n|---|---|\n| 1 | 2 |\n\n![alt text](https://book.x-zone.site/covers/30255971.jpg)",
+      "- [ ] 任务\n- 列表\n\n![alt text](https://book.x-zone.site/covers/30255971.jpg)\n\n> 引用",
+      "正文里的一张图 ![alt text](https://book.x-zone.site/covers/30255971.jpg) 和 [[双链]] 与 #标签",
+    ];
+    for (const content of cases) {
+      const ed = createNoteEditor(content);
+      expect(ed.getMarkdown().trim()).toBeTruthy();
+      ed.destroy();
+    }
   });
 });
 

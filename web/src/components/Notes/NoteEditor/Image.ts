@@ -11,11 +11,16 @@ export const IMAGE_CLASS = "max-w-full h-auto my-2 rounded";
  * byte-identically. Without this extension marked's image token is degraded
  * to its alt text and the syntax is lost on save. The NodeView adds a hover
  * edit button so the URL/alt can be changed without retyping the syntax.
+ *
+ * `group: "block"` matches the official @tiptap/extension-image: a lone image
+ * line is parsed by @tiptap/markdown as a direct doc child, which is only a
+ * valid ProseMirror structure for block nodes. An inline image there produced
+ * an invalid doc that crashed on render with "Called contentMatchAt on a node
+ * with invalid content".
  */
 export const Image = Node.create({
   name: "image",
-  group: "inline",
-  inline: true,
+  group: "block",
   atom: true,
   draggable: true,
   selectable: true,
