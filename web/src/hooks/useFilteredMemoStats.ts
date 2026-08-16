@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import type { MemoExplorerContext } from "@/components/MemoExplorer";
 import { type MemoTimeBasis, useView } from "@/contexts/ViewContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
-import { useNoteCreatedTs } from "@/hooks/useNoteQueries";
+import { useNoteCreatedTs, useNotes } from "@/hooks/useNoteQueries";
 import { useAllUserStats, useUserStats } from "@/hooks/useUserQueries";
 import { State } from "@/types/proto/api/v1/common_pb";
 import type { UserStats } from "@/types/proto/api/v1/user_service_pb";
@@ -57,8 +57,10 @@ export const useFilteredMemoStats = (options: UseFilteredMemoStatsOptions = {}):
     enabled: shouldFetchAllUserStats,
   });
 
-  // notes: aggregate note creation timestamps from the backend.
+  // notes: aggregate note creation timestamps from the backend, and tags from
+  // the loaded note list (page 1) for the sidebar tag section.
   const { data: noteCreatedTs, isLoading: isLoadingNoteStats } = useNoteCreatedTs(context === "notes");
+  const { data: notesData } = useNotes({ pageSize: 200 }, { enabled: context === "notes" });
 
   const data = useMemo(() => {
     const loading = isLoadingUserStats || isLoadingAllUserStats || isLoadingNoteStats;
@@ -67,6 +69,11 @@ export const useFilteredMemoStats = (options: UseFilteredMemoStatsOptions = {}):
 
     if (context === "notes") {
       activityStats = countBy((noteCreatedTs ?? []).map((ts) => toDateString(timestampDate(ts))));
+      for (const note of notesData?.notes ?? []) {
+        for (const tag of note.tags ?? []) {
+          tagCount[tag] = (tagCount[tag] ?? 0) + 1;
+        }
+      }
     } else if (context === "explore" || context === "archived") {
       const displayDates: string[] = [];
       for (const stats of allUserStats) {
@@ -98,7 +105,18 @@ export const useFilteredMemoStats = (options: UseFilteredMemoStatsOptions = {}):
     }
 
     return { statistics: { activityStats, timeBasis }, tags: tagCount, loading };
-  }, [context, userName, userStats, allUserStats, noteCreatedTs, isLoadingUserStats, isLoadingAllUserStats, isLoadingNoteStats, timeBasis]);
+  }, [
+    context,
+    userName,
+    userStats,
+    allUserStats,
+    noteCreatedTs,
+    notesData,
+    isLoadingUserStats,
+    isLoadingAllUserStats,
+    isLoadingNoteStats,
+    timeBasis,
+  ]);
 
   return data;
 };

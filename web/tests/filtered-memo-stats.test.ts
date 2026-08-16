@@ -9,6 +9,7 @@ vi.mock("@/hooks/useUserQueries", () => ({
 }));
 vi.mock("@/hooks/useNoteQueries", () => ({
   useNoteCreatedTs: vi.fn(),
+  useNotes: vi.fn(),
 }));
 vi.mock("@/hooks/useMemoQueries", () => ({
   useMemos: () => ({ data: undefined, isLoading: false }),
@@ -26,9 +27,9 @@ vi.mock("@/contexts/ViewContext", async () => {
   };
 });
 
-import { useAllUserStats, useUserStats } from "@/hooks/useUserQueries";
-import { useNoteCreatedTs } from "@/hooks/useNoteQueries";
 import { useFilteredMemoStats } from "@/hooks/useFilteredMemoStats";
+import { useNoteCreatedTs, useNotes } from "@/hooks/useNoteQueries";
+import { useAllUserStats, useUserStats } from "@/hooks/useUserQueries";
 
 const wrapper = ({ children }: { children: ReactNode }) => children as never;
 
@@ -47,6 +48,10 @@ describe("useFilteredMemoStats", () => {
       data: undefined,
       isLoading: false,
     } as ReturnType<typeof useNoteCreatedTs>);
+    vi.mocked(useNotes).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as ReturnType<typeof useNotes>);
     vi.mocked(useUserStats).mockReturnValue({
       data: {
         memoCreatedTimestamps: [ts(2026, 5, 1), ts(2026, 5, 1), ts(2026, 5, 2)],
@@ -104,6 +109,25 @@ describe("useFilteredMemoStats", () => {
     const { result } = renderHook(() => useFilteredMemoStats({ context: "notes" }), { wrapper });
 
     expect(result.current.statistics.activityStats).toEqual({ "2026-05-01": 1, "2026-05-02": 1 });
+  });
+
+  it("aggregates note tags for the notes context", () => {
+    vi.mocked(useNotes).mockReturnValue({
+      data: {
+        notes: [{ tags: ["study", "go"] }, { tags: ["study"] }, { tags: [] }],
+      },
+      isLoading: false,
+    } as ReturnType<typeof useNotes>);
+    mockUseView.mockReturnValue({
+      timeBasis: "create_time",
+      orderByTimeAsc: false,
+      toggleSortOrder: vi.fn(),
+      setTimeBasis: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useFilteredMemoStats({ context: "notes" }), { wrapper });
+
+    expect(result.current.tags).toEqual({ study: 2, go: 1 });
   });
 
   it("falls back to created timestamps when updated array is empty (old server)", () => {

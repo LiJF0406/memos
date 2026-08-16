@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import { FileUpIcon, PlusIcon, XIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { NOTE_DATE_QUERY_PARAM } from "@/components/MemoExplorer";
+import { NOTE_DATE_QUERY_PARAM, NOTE_TAG_QUERY_PARAM } from "@/components/MemoExplorer";
 import NoteListItem from "@/components/Notes/NoteListItem";
 import NoteSearchBar from "@/components/Notes/NoteSearchBar";
 import { extractNoteIdFromName } from "@/helpers/resource-names";
@@ -21,8 +21,20 @@ const Notes = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedFolderId = searchParams.get("folder");
   const selectedDate = searchParams.get(NOTE_DATE_QUERY_PARAM);
+  const tag = searchParams.get(NOTE_TAG_QUERY_PARAM) ?? "";
   const [searchValue, setSearchValue] = useState("");
-  const [tag, setTag] = useState("");
+
+  const setTagFilter = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    const trimmed = value.replace(/^#/, "");
+    if (trimmed) {
+      params.set(NOTE_TAG_QUERY_PARAM, trimmed);
+    } else {
+      params.delete(NOTE_TAG_QUERY_PARAM);
+    }
+    // replace: typing in the search bar shouldn't pile up history entries.
+    setSearchParams(params, { replace: true });
+  };
 
   const listRequest = useMemo(() => {
     const request: Partial<ListNotesRequest> = {
@@ -121,7 +133,7 @@ const Notes = () => {
           {t("note.new-note")}
         </button>
       </div>
-      <NoteSearchBar value={searchValue} tag={tag} onValueChange={setSearchValue} onTagChange={setTag} />
+      <NoteSearchBar value={searchValue} tag={tag} onValueChange={setSearchValue} onTagChange={setTagFilter} />
       <div className="flex-1 overflow-auto flex flex-col gap-1">
         {notes.length === 0 ? (
           <div className="w-full py-16 text-center text-muted-foreground">{t("note.no-notes")}</div>

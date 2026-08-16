@@ -11,6 +11,7 @@ import TagsSection from "./TagsSection";
 export type MemoExplorerContext = "home" | "explore" | "archived" | "profile" | "notes";
 
 export const NOTE_DATE_QUERY_PARAM = "date";
+export const NOTE_TAG_QUERY_PARAM = "tag";
 
 export interface MemoExplorerFeatures {
   search?: boolean;
@@ -56,7 +57,7 @@ const getDefaultFeatures = (context: MemoExplorerContext): MemoExplorerFeatures 
         search: true,
         statistics: true,
         shortcuts: false, // Notes page doesn't use shortcuts
-        tags: false, // Tags section only shows memo tags; notes tags are filtered in the note list
+        tags: true,
         notes: true,
       };
     case "home":
@@ -76,6 +77,7 @@ const MemoExplorer = (props: Props) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const isNotes = context === "notes";
   const selectedDate = isNotes ? (searchParams.get(NOTE_DATE_QUERY_PARAM) ?? undefined) : undefined;
+  const activeTag = isNotes ? (searchParams.get(NOTE_TAG_QUERY_PARAM) ?? undefined) : undefined;
 
   // Merge default features with overrides
   const features = {
@@ -94,6 +96,17 @@ const MemoExplorer = (props: Props) => {
     setSearchParams(params);
   };
 
+  // Notes: toggle the selected tag in the URL. Clicking the same tag clears it.
+  const handleTagClick = (tag: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (params.get(NOTE_TAG_QUERY_PARAM) === tag) {
+      params.delete(NOTE_TAG_QUERY_PARAM);
+    } else {
+      params.set(NOTE_TAG_QUERY_PARAM, tag);
+    }
+    setSearchParams(params);
+  };
+
   return (
     <aside
       className={cn(
@@ -108,7 +121,14 @@ const MemoExplorer = (props: Props) => {
         )}
         {features.notes && <NotesSection />}
         {features.shortcuts && currentUser && <ShortcutsSection />}
-        {features.tags && <TagsSection readonly={context === "explore"} tagCount={tagCount} />}
+        {features.tags && (
+          <TagsSection
+            readonly={context === "explore"}
+            tagCount={tagCount}
+            onTagClick={isNotes ? handleTagClick : undefined}
+            activeTag={activeTag}
+          />
+        )}
       </div>
     </aside>
   );

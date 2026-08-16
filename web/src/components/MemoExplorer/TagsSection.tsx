@@ -10,6 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 interface Props {
   readonly?: boolean;
   tagCount: Record<string, number>;
+  // Custom interaction for contexts without a memo filter (e.g. notes):
+  // when provided, activation and clicks use these instead of MemoFilterContext.
+  onTagClick?: (tag: string) => void;
+  activeTag?: string;
 }
 
 const TagsSection = (props: Props) => {
@@ -18,11 +22,19 @@ const TagsSection = (props: Props) => {
   const [treeMode, setTreeMode] = useLocalStorage<boolean>("tag-view-as-tree", false);
   const [treeAutoExpand, setTreeAutoExpand] = useLocalStorage<boolean>("tag-tree-auto-expand", false);
 
+  const isCustomMode = props.onTagClick !== undefined;
+  const isActiveTag = (tag: string) =>
+    isCustomMode ? props.activeTag === tag : getFiltersByFactor("tagSearch").some((filter: MemoFilter) => filter.value === tag);
+
   const tags = Object.entries(props.tagCount)
     .sort((a, b) => a[0].localeCompare(b[0]))
     .sort((a, b) => b[1] - a[1]);
 
   const handleTagClick = (tag: string) => {
+    if (isCustomMode) {
+      props.onTagClick!(tag);
+      return;
+    }
     const isActive = getFiltersByFactor("tagSearch").some((filter: MemoFilter) => filter.value === tag);
     if (isActive) {
       removeFilter((f: MemoFilter) => f.factor === "tagSearch" && f.value === tag);
@@ -64,7 +76,7 @@ const TagsSection = (props: Props) => {
         ) : (
           <div className="w-full flex flex-row justify-start items-center relative flex-wrap gap-x-2 gap-y-1.5">
             {tags.map(([tag, amount]) => {
-              const isActive = getFiltersByFactor("tagSearch").some((filter: MemoFilter) => filter.value === tag);
+              const isActive = isActiveTag(tag);
               return (
                 <div
                   key={tag}
