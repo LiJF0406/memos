@@ -1,13 +1,16 @@
 import { type MarkdownToken, mergeAttributes, Node } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { ImageNodeView } from "./ImageNodeView";
 
 // Matches the read-only Image component (MemoContent/markdown/Image.tsx).
-const IMAGE_CLASS = "max-w-full h-auto my-2 rounded";
+export const IMAGE_CLASS = "max-w-full h-auto my-2 rounded";
 
 /**
  * Image node for the notes editor, with @tiptap/markdown support so
  * `![alt](url)` parses into a real image node and serializes back
  * byte-identically. Without this extension marked's image token is degraded
- * to its alt text and the syntax is lost on save.
+ * to its alt text and the syntax is lost on save. The NodeView adds a hover
+ * edit button so the URL/alt can be changed without retyping the syntax.
  */
 export const Image = Node.create({
   name: "image",
@@ -16,6 +19,10 @@ export const Image = Node.create({
   atom: true,
   draggable: true,
   selectable: true,
+
+  addNodeView() {
+    return ReactNodeViewRenderer(ImageNodeView);
+  },
 
   addAttributes() {
     return {
