@@ -29,6 +29,9 @@ func (*wikiLinkParser) Trigger() []byte {
 
 // Parse parses [[title]] syntax. Titles must be non-empty, on a single line,
 // and cannot contain nested `[` characters.
+//
+// Note: a wiki link consumes its entire [[...]] span, so `#tag`/`@user`
+// inside a wiki link are NOT extracted as tags or mentions (e.g. [[#tag]]).
 func (*wikiLinkParser) Parse(_ gast.Node, block text.Reader, _ parser.Context) gast.Node {
 	line, _ := block.PeekLine()
 	if len(line) < 2 || line[0] != '[' || line[1] != '[' {

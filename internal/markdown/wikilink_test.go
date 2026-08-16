@@ -128,7 +128,6 @@ func TestExtractAllWikiLinksWithTagsAndMentions(t *testing.T) {
 
 func TestGenerateSnippetWikiLinks(t *testing.T) {
 	svc := NewService(WithWikiLinkExtension())
-
 	tests := []struct {
 		name     string
 		content  string
@@ -151,6 +150,40 @@ func TestGenerateSnippetWikiLinks(t *testing.T) {
 			snippet, err := svc.GenerateSnippet([]byte(tt.content), 100)
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, snippet)
+		})
+	}
+}
+
+func TestRenderHTMLWikiLinks(t *testing.T) {
+	svc := NewService(WithWikiLinkExtension())
+
+	tests := []struct {
+		name     string
+		content  string
+		expected string
+	}{
+		{
+			name:     "wiki link preserved as literal text",
+			content:  "See [[Go 笔记]] for details",
+			expected: "<p>See [[Go 笔记]] for details</p>\n",
+		},
+		{
+			name:     "wiki link with surrounding markdown",
+			content:  "Check [[目标]] and **bold**",
+			expected: "<p>Check [[目标]] and <strong>bold</strong></p>\n",
+		},
+		{
+			name:     "plain text without wiki link",
+			content:  "Hello #tag and @alice",
+			expected: "<p>Hello #tag and @alice</p>\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			html, err := svc.RenderHTML([]byte(tt.content))
+			require.NoError(t, err)
+			assert.Equal(t, tt.expected, html)
 		})
 	}
 }
