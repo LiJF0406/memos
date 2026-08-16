@@ -9,10 +9,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MarkdownRenderContext, rootMarkdownRenderContext } from "@/components/MemoContent/MarkdownRenderContext";
 import { buildMemoMarkdownComponents } from "@/components/MemoContent/MemoMarkdownRenderer";
+import { CollapseAllSelectionAfterDelete, isPastedUrl } from "@/components/MemoEditor/Editor";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
+import { SlashCommand } from "@/components/MemoEditor/Editor/SlashCommand";
+import { TagSuggestion } from "@/components/MemoEditor/Editor/TagSuggestion";
 import { uploadService } from "@/components/MemoEditor/services/uploadService";
 import { useExportNote, useNoteLinks, useNotes, useUpdateNote } from "@/hooks";
 import { useMemos } from "@/hooks/useMemoQueries";
+import { useTagCounts } from "@/hooks/useUserQueries";
 import { cn } from "@/lib/utils";
 import { isWikiLinkElement } from "@/types/markdown";
 import type { NoteLink } from "@/types/proto/api/v1/note_service_pb";
@@ -93,6 +97,7 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
   const { data: linksData } = useNoteLinks(noteName);
   const { data: notesData } = useNotes({ pageSize: 100 });
   const { data: memosData } = useMemos({ pageSize: 100 });
+  const { data: memoTagCount = {} } = useTagCounts(true);
 
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<Editor | null>(null);
@@ -122,6 +127,25 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
   const suggestionItemsRef = useRef<WikiLinkSuggestionItem[]>([]);
   suggestionItemsRef.current = suggestionItems;
 
+  // Aggregated tags from the already-loaded notes (page 1), falling back to the
+  // current user's memo tags so the # popup always has suggestions. Notes save
+  // tags extracted from their content by the backend, so inserting "#tag"
+  // persists it as a note tag automatically.
+  const noteTags = useMemo(() => {
+    const tags = new Set<string>();
+    for (const note of notesData?.notes ?? []) {
+      for (const tag of note.tags ?? []) {
+        tags.add(tag);
+      }
+    }
+    for (const tag of Object.keys(memoTagCount)) {
+      tags.add(tag);
+    }
+    return [...tags].sort((a, b) => a.localeCompare(b));
+  }, [notesData, memoTagCount]);
+  const noteTagsRef = useRef<string[]>([]);
+  noteTagsRef.current = noteTags;
+
   const extensions = useMemo(
     () => [
       ...buildExtensions(),
@@ -130,6 +154,9 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
       MarkdownInputRules,
       Placeholder.configure({ placeholder: () => placeholderRef.current }),
       WikiLinkSuggestion.configure({ getItems: () => suggestionItemsRef.current }),
+      SlashCommand,
+      TagSuggestion.configure({ getTags: () => noteTagsRef.current }),
+      CollapseAllSelectionAfterDelete,
       LivePreview,
     ],
     [],
@@ -140,7 +167,7 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
       attributes: {
         class: "note-wysiwyg outline-none w-full text-base break-words min-h-40",
       },
-      handlePaste: (_view, event: ClipboardEvent) => {
+      handlePaste: (view, event: ClipboardEvent) => {
         const clipboard = event.clipboardData;
         if (!clipboard) {
           return false;
@@ -159,6 +186,11 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
         }
         const text = clipboard.getData("text/plain");
         if (!text) {
+          return false;
+        }
+        // 「URL 覆盖选区 → 链接」由 @tiptap/extension-link 的 pasteHandler 处理，
+        // 它会在本 prop 之后执行；此处交给它。
+        if (!view.state.selection.empty && isPastedUrl(text)) {
           return false;
         }
         return editorRef.current?.commands.insertContent(text, { contentType: "markdown" }) ?? false;

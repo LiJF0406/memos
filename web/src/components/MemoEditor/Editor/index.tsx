@@ -42,7 +42,7 @@ const SaveShortcutPassthrough = Extension.create({
 // the same way deleting an ordinary text selection collapses to a cursor.
 // The `instanceof AllSelection` guard re-evaluates against the post-collapse
 // state, so the appended selection-only transaction is not re-processed.
-const CollapseAllSelectionAfterDelete = Extension.create({
+export const CollapseAllSelectionAfterDelete = Extension.create({
   name: "collapseAllSelectionAfterDelete",
   addProseMirrorPlugins() {
     return [
@@ -83,7 +83,7 @@ function serializeMarkdown(editor: { getMarkdown: () => string } | null): string
  * 当整段（单个 token）文本是 Link 扩展会自动链接的链接时返回 true。
  * 用于将「URL 覆盖选区」的粘贴交还给该扩展处理，而不是当作 markdown 重新解析。
  */
-function isPastedUrl(text: string): boolean {
+export function isPastedUrl(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed || /\s/.test(trimmed)) {
     return false;
