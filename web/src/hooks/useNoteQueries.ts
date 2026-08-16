@@ -13,6 +13,7 @@ export const noteKeys = {
   details: () => [...noteKeys.all, "detail"] as const,
   detail: (name: string) => [...noteKeys.details(), name] as const,
   links: (name: string) => [...noteKeys.all, "links", name] as const,
+  stats: () => [...noteKeys.all, "stats"] as const,
 };
 
 export function useNotes(request: Partial<ListNotesRequest> = {}, options?: { enabled?: boolean }) {
@@ -34,6 +35,17 @@ export function useNote(name: string, options?: { enabled?: boolean }) {
       return note;
     },
     enabled: options?.enabled ?? true,
+  });
+}
+
+export function useNoteCreatedTs(enabled?: boolean) {
+  return useQuery({
+    queryKey: noteKeys.stats(),
+    queryFn: async () => {
+      const response = await noteServiceClient.listNoteStats({});
+      return response.createdTs;
+    },
+    enabled,
   });
 }
 

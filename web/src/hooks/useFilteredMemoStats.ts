@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import type { MemoExplorerContext } from "@/components/MemoExplorer";
 import { type MemoTimeBasis, useView } from "@/contexts/ViewContext";
 import useCurrentUser from "@/hooks/useCurrentUser";
+import { useNoteCreatedTs } from "@/hooks/useNoteQueries";
 import { useAllUserStats, useUserStats } from "@/hooks/useUserQueries";
 import { State } from "@/types/proto/api/v1/common_pb";
 import type { UserStats } from "@/types/proto/api/v1/user_service_pb";
@@ -56,12 +57,17 @@ export const useFilteredMemoStats = (options: UseFilteredMemoStatsOptions = {}):
     enabled: shouldFetchAllUserStats,
   });
 
+  // notes: aggregate note creation timestamps from the backend.
+  const { data: noteCreatedTs, isLoading: isLoadingNoteStats } = useNoteCreatedTs(context === "notes");
+
   const data = useMemo(() => {
-    const loading = isLoadingUserStats || isLoadingAllUserStats;
+    const loading = isLoadingUserStats || isLoadingAllUserStats || isLoadingNoteStats;
     let activityStats: Record<string, number> = {};
     let tagCount: Record<string, number> = {};
 
-    if (context === "explore" || context === "archived") {
+    if (context === "notes") {
+      activityStats = countBy((noteCreatedTs ?? []).map((ts) => toDateString(timestampDate(ts))));
+    } else if (context === "explore" || context === "archived") {
       const displayDates: string[] = [];
       for (const stats of allUserStats) {
         for (const [tag, count] of Object.entries(stats.tagCount ?? {})) {
@@ -92,7 +98,7 @@ export const useFilteredMemoStats = (options: UseFilteredMemoStatsOptions = {}):
     }
 
     return { statistics: { activityStats, timeBasis }, tags: tagCount, loading };
-  }, [context, userName, userStats, allUserStats, isLoadingUserStats, isLoadingAllUserStats, timeBasis]);
+  }, [context, userName, userStats, allUserStats, noteCreatedTs, isLoadingUserStats, isLoadingAllUserStats, isLoadingNoteStats, timeBasis]);
 
   return data;
 };

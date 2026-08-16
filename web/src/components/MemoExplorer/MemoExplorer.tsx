@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import SearchBar from "@/components/SearchBar";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
@@ -8,6 +9,8 @@ import ShortcutsSection from "./ShortcutsSection";
 import TagsSection from "./TagsSection";
 
 export type MemoExplorerContext = "home" | "explore" | "archived" | "profile" | "notes";
+
+export const NOTE_DATE_QUERY_PARAM = "date";
 
 export interface MemoExplorerFeatures {
   search?: boolean;
@@ -53,7 +56,7 @@ const getDefaultFeatures = (context: MemoExplorerContext): MemoExplorerFeatures 
         search: true,
         statistics: true,
         shortcuts: false, // Notes page doesn't use shortcuts
-        tags: true,
+        tags: false, // Tags section only shows memo tags; notes tags are filtered in the note list
         notes: true,
       };
     case "home":
@@ -70,11 +73,25 @@ const getDefaultFeatures = (context: MemoExplorerContext): MemoExplorerFeatures 
 const MemoExplorer = (props: Props) => {
   const { className, context = "home", features: featureOverrides = {}, statisticsData, tagCount } = props;
   const currentUser = useCurrentUser();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isNotes = context === "notes";
+  const selectedDate = isNotes ? (searchParams.get(NOTE_DATE_QUERY_PARAM) ?? undefined) : undefined;
 
   // Merge default features with overrides
   const features = {
     ...getDefaultFeatures(context),
     ...featureOverrides,
+  };
+
+  // Notes: toggle the selected date in the URL. Clicking the same date clears it.
+  const handleDateClick = (date: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (params.get(NOTE_DATE_QUERY_PARAM) === date) {
+      params.delete(NOTE_DATE_QUERY_PARAM);
+    } else {
+      params.set(NOTE_DATE_QUERY_PARAM, date);
+    }
+    setSearchParams(params);
   };
 
   return (
@@ -86,7 +103,9 @@ const MemoExplorer = (props: Props) => {
     >
       {features.search && <SearchBar />}
       <div className="mt-1 px-1 w-full">
-        {features.statistics && <StatisticsView statisticsData={statisticsData} />}
+        {features.statistics && (
+          <StatisticsView statisticsData={statisticsData} onDateClick={isNotes ? handleDateClick : undefined} selectedDate={selectedDate} />
+        )}
         {features.notes && <NotesSection />}
         {features.shortcuts && currentUser && <ShortcutsSection />}
         {features.tags && <TagsSection readonly={context === "explore"} tagCount={tagCount} />}

@@ -1,12 +1,16 @@
 import { create } from "@bufbuild/protobuf";
-import { FileUpIcon, PlusIcon } from "lucide-react";
+import { timestampFromDate } from "@bufbuild/protobuf/wkt";
+import dayjs from "dayjs";
+import { FileUpIcon, PlusIcon, XIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { NOTE_DATE_QUERY_PARAM } from "@/components/MemoExplorer";
 import NoteListItem from "@/components/Notes/NoteListItem";
 import NoteSearchBar from "@/components/Notes/NoteSearchBar";
 import { extractNoteIdFromName } from "@/helpers/resource-names";
 import { useCreateNote, useImportNote, useNotes } from "@/hooks";
 import useNavigateTo from "@/hooks/useNavigateTo";
+import type { ListNotesRequest } from "@/types/proto/api/v1/note_service_pb";
 import { NoteSchema } from "@/types/proto/api/v1/note_service_pb";
 import { useTranslate } from "@/utils/i18n";
 
@@ -14,22 +18,34 @@ const Notes = () => {
   const t = useTranslate();
   const navigateTo = useNavigateTo();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedFolderId = searchParams.get("folder");
+  const selectedDate = searchParams.get(NOTE_DATE_QUERY_PARAM);
   const [searchValue, setSearchValue] = useState("");
   const [tag, setTag] = useState("");
 
-  const listRequest = useMemo(
-    () => ({
+  const listRequest = useMemo(() => {
+    const request: Partial<ListNotesRequest> = {
       folder: selectedFolderId ?? "-",
       titleSearch: searchValue || undefined,
       tag: tag || undefined,
       pageSize: 200,
-    }),
-    [selectedFolderId, searchValue, tag],
-  );
+    };
+    if (selectedDate) {
+      // Filter by the selected date in the local timezone: [00:00, next 00:00).
+      request.createdTsAfter = timestampFromDate(dayjs(selectedDate).startOf("day").toDate());
+      request.createdTsBefore = timestampFromDate(dayjs(selectedDate).add(1, "day").startOf("day").toDate());
+    }
+    return request;
+  }, [selectedFolderId, selectedDate, searchValue, tag]);
   const { data: notesData } = useNotes(listRequest);
   const notes = notesData?.notes ?? [];
+
+  const clearDateFilter = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete(NOTE_DATE_QUERY_PARAM);
+    setSearchParams(params);
+  };
 
   const createNote = useCreateNote();
   const importNote = useImportNote();
@@ -63,6 +79,17 @@ const Notes = () => {
     <div className="w-full h-full flex flex-col gap-3 p-4 min-w-0">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">{t("common.notes")}</h1>
+        {selectedDate && (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-xs text-accent-foreground transition-colors hover:bg-accent/70"
+            onClick={clearDateFilter}
+            title={t("common.clear")}
+          >
+            {selectedDate}
+            <XIcon className="w-3 h-auto" />
+          </button>
+        )}
         <input
           ref={fileInputRef}
           className="hidden"

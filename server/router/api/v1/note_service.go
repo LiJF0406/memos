@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	"github.com/usememos/memos/store"
@@ -219,6 +220,14 @@ func (s *APIV1Service) ListNotes(ctx context.Context, request *v1pb.ListNotesReq
 	if request.OrderBy != "" {
 		parseNoteOrderBy(request.OrderBy, find)
 	}
+	if request.CreatedTsAfter != nil {
+		createdTsAfter := request.CreatedTsAfter.AsTime().Unix()
+		find.CreatedTsAfter = &createdTsAfter
+	}
+	if request.CreatedTsBefore != nil {
+		createdTsBefore := request.CreatedTsBefore.AsTime().Unix()
+		find.CreatedTsBefore = &createdTsBefore
+	}
 
 	var limit, offset int
 	if request.PageToken != "" {
@@ -299,6 +308,38 @@ func (s *APIV1Service) ListNotes(ctx context.Context, request *v1pb.ListNotesReq
 		Notes:         noteMessages,
 		NextPageToken: nextPageToken,
 	}, nil
+}
+
+// ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+func (s *APIV1Service) ListNoteStats(ctx context.Context, _ *v1pb.ListNoteStatsRequest) (*v1pb.ListNoteStatsResponse, error) {
+	user, err := s.fetchCurrentUser(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user")
+	}
+	if user == nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
+
+	sharedFolderIDs, err := s.Store.ListSharedNoteFolderIDs(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list shared note folders")
+	}
+
+	rowStatus := store.Normal
+	createdTsList, err := s.Store.ListNoteCreatedTs(ctx, &store.FindNote{
+		RowStatus:              &rowStatus,
+		CreatorID:              &user.ID,
+		AccessibleFolderIDList: sharedFolderIDs,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list note stats: %v", err)
+	}
+
+	createdTs := make([]*timestamppb.Timestamp, 0, len(createdTsList))
+	for _, ts := range createdTsList {
+		createdTs = append(createdTs, timestamppb.New(time.Unix(ts, 0)))
+	}
+	return &v1pb.ListNoteStatsResponse{CreatedTs: createdTs}, nil
 }
 
 // GetNote gets a note.

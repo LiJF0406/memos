@@ -27,6 +27,10 @@ service NoteService {
     option (google.api.http) = {get: "/api/v1/notes"};
     option (google.api.method_signature) = "";
   }
+  // ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+  rpc ListNoteStats(ListNoteStatsRequest) returns (ListNoteStatsResponse) {
+    option (google.api.http) = {get: "/api/v1/note-stats"};
+  }
   // GetNote gets a note.
   rpc GetNote(GetNoteRequest) returns (Note) {
     option (google.api.http) = {get: "/api/v1/{name=notes/*}"};
@@ -238,6 +242,13 @@ message ListNotesRequest {
   // Optional. The order to sort results by.
   // Default to "create_time desc". Supports "update_time desc" and "update_time asc".
   string order_by = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Only return notes created at or after this timestamp.
+  // Combined with `created_ts_before` to form a half-open interval [after, before).
+  google.protobuf.Timestamp created_ts_after = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Only return notes created strictly before this timestamp.
+  google.protobuf.Timestamp created_ts_before = 8 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListNotesResponse {
@@ -246,6 +257,16 @@ message ListNotesResponse {
 
   // A token that can be sent as `page_token` to retrieve the next page.
   string next_page_token = 2;
+}
+
+// ListNoteStatsRequest lists the creation timestamps of all notes
+// accessible to the current user, including shared folders.
+message ListNoteStatsRequest {}
+
+// ListNoteStatsResponse contains the creation timestamps of the notes.
+message ListNoteStatsResponse {
+  // The creation timestamps of all accessible notes.
+  repeated google.protobuf.Timestamp created_ts = 1;
 }
 
 message GetNoteRequest {

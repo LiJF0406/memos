@@ -57,6 +57,12 @@ type FindNote struct {
 	// Tag filters notes that carry the given tag.
 	Tag *string
 
+	// CreatedTsAfter restricts results to notes created at or after this
+	// timestamp. CreatedTsBefore restricts results to notes created strictly
+	// before this timestamp. Together they form a half-open interval.
+	CreatedTsAfter  *int64
+	CreatedTsBefore *int64
+
 	// Pagination.
 	Limit  *int
 	Offset *int
@@ -95,6 +101,11 @@ func (s *Store) CreateNote(ctx context.Context, create *Note) (*Note, error) {
 // ListNotes lists notes matching the given filter.
 func (s *Store) ListNotes(ctx context.Context, find *FindNote) ([]*Note, error) {
 	return s.driver.ListNotes(ctx, find)
+}
+
+// ListNoteCreatedTs lists the creation timestamps of notes matching the given filter.
+func (s *Store) ListNoteCreatedTs(ctx context.Context, find *FindNote) ([]int64, error) {
+	return s.driver.ListNoteCreatedTs(ctx, find)
 }
 
 // GetNote returns a single note matching the given filter, or nil.

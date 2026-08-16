@@ -85,6 +85,7 @@ type Driver interface {
 	// Note model related methods.
 	CreateNote(ctx context.Context, create *Note) (*Note, error)
 	ListNotes(ctx context.Context, find *FindNote) ([]*Note, error)
+	ListNoteCreatedTs(ctx context.Context, find *FindNote) ([]int64, error)
 	UpdateNote(ctx context.Context, update *UpdateNote) error
 	DeleteNote(ctx context.Context, delete *DeleteNote) error
 

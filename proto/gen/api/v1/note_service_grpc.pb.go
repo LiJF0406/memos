@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	NoteService_CreateNote_FullMethodName    = "/memos.api.v1.NoteService/CreateNote"
 	NoteService_ListNotes_FullMethodName     = "/memos.api.v1.NoteService/ListNotes"
+	NoteService_ListNoteStats_FullMethodName = "/memos.api.v1.NoteService/ListNoteStats"
 	NoteService_GetNote_FullMethodName       = "/memos.api.v1.NoteService/GetNote"
 	NoteService_UpdateNote_FullMethodName    = "/memos.api.v1.NoteService/UpdateNote"
 	NoteService_DeleteNote_FullMethodName    = "/memos.api.v1.NoteService/DeleteNote"
@@ -40,6 +41,8 @@ type NoteServiceClient interface {
 	CreateNote(ctx context.Context, in *CreateNoteRequest, opts ...grpc.CallOption) (*Note, error)
 	// ListNotes lists notes with pagination and filter.
 	ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (*ListNotesResponse, error)
+	// ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+	ListNoteStats(ctx context.Context, in *ListNoteStatsRequest, opts ...grpc.CallOption) (*ListNoteStatsResponse, error)
 	// GetNote gets a note.
 	GetNote(ctx context.Context, in *GetNoteRequest, opts ...grpc.CallOption) (*Note, error)
 	// UpdateNote updates a note.
@@ -76,6 +79,16 @@ func (c *noteServiceClient) ListNotes(ctx context.Context, in *ListNotesRequest,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListNotesResponse)
 	err := c.cc.Invoke(ctx, NoteService_ListNotes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *noteServiceClient) ListNoteStats(ctx context.Context, in *ListNoteStatsRequest, opts ...grpc.CallOption) (*ListNoteStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNoteStatsResponse)
+	err := c.cc.Invoke(ctx, NoteService_ListNoteStats_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +165,8 @@ type NoteServiceServer interface {
 	CreateNote(context.Context, *CreateNoteRequest) (*Note, error)
 	// ListNotes lists notes with pagination and filter.
 	ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error)
+	// ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+	ListNoteStats(context.Context, *ListNoteStatsRequest) (*ListNoteStatsResponse, error)
 	// GetNote gets a note.
 	GetNote(context.Context, *GetNoteRequest) (*Note, error)
 	// UpdateNote updates a note.
@@ -179,6 +194,9 @@ func (UnimplementedNoteServiceServer) CreateNote(context.Context, *CreateNoteReq
 }
 func (UnimplementedNoteServiceServer) ListNotes(context.Context, *ListNotesRequest) (*ListNotesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNotes not implemented")
+}
+func (UnimplementedNoteServiceServer) ListNoteStats(context.Context, *ListNoteStatsRequest) (*ListNoteStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNoteStats not implemented")
 }
 func (UnimplementedNoteServiceServer) GetNote(context.Context, *GetNoteRequest) (*Note, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetNote not implemented")
@@ -251,6 +269,24 @@ func _NoteService_ListNotes_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NoteServiceServer).ListNotes(ctx, req.(*ListNotesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NoteService_ListNoteStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNoteStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NoteServiceServer).ListNoteStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NoteService_ListNoteStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NoteServiceServer).ListNoteStats(ctx, req.(*ListNoteStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -377,6 +413,10 @@ var NoteService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListNotes",
 			Handler:    _NoteService_ListNotes_Handler,
+		},
+		{
+			MethodName: "ListNoteStats",
+			Handler:    _NoteService_ListNoteStats_Handler,
 		},
 		{
 			MethodName: "GetNote",

@@ -41,10 +41,10 @@ func (d *DB) CreateNote(ctx context.Context, create *store.Note) (*store.Note, e
 	return create, nil
 }
 
-func (d *DB) ListNotes(ctx context.Context, find *store.FindNote) ([]*store.Note, error) {
-	join := []string{}
-	joinArgs := []any{}
-	where, args := []string{"1 = 1"}, []any{}
+// buildNoteQuery builds the shared JOIN/WHERE parts for note queries.
+func buildNoteQuery(find *store.FindNote) (join []string, joinArgs []any, where []string, args []any) {
+	join, joinArgs = []string{}, []any{}
+	where, args = []string{"1 = 1"}, []any{}
 
 	if find.Tag != nil {
 		join = append(join, "JOIN `note_tag` ON `note_tag`.`note_id` = `note`.`id` AND `note_tag`.`tag` = ?")
@@ -141,6 +141,18 @@ func (d *DB) ListNotes(ctx context.Context, find *store.FindNote) ([]*store.Note
 	if v := find.TitleSearch; v != nil {
 		where, args = append(where, "`note`.`title` LIKE ?"), append(args, "%"+*v+"%")
 	}
+	if v := find.CreatedTsAfter; v != nil {
+		where, args = append(where, "`note`.`created_ts` >= ?"), append(args, *v)
+	}
+	if v := find.CreatedTsBefore; v != nil {
+		where, args = append(where, "`note`.`created_ts` < ?"), append(args, *v)
+	}
+
+	return join, joinArgs, where, args
+}
+
+func (d *DB) ListNotes(ctx context.Context, find *store.FindNote) ([]*store.Note, error) {
+	join, joinArgs, where, args := buildNoteQuery(find)
 
 	order := "DESC"
 	if find.OrderByTimeAsc {
@@ -201,6 +213,36 @@ func (d *DB) ListNotes(ctx context.Context, find *store.FindNote) ([]*store.Note
 			return nil, err
 		}
 		list = append(list, note)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+// ListNoteCreatedTs lists the creation timestamps of notes matching the filter.
+func (d *DB) ListNoteCreatedTs(ctx context.Context, find *store.FindNote) ([]int64, error) {
+	join, joinArgs, where, args := buildNoteQuery(find)
+
+	query := "SELECT `note`.`created_ts` FROM `note` " +
+		strings.Join(join, " ") +
+		" WHERE " + strings.Join(where, " AND ") +
+		" ORDER BY `note`.`created_ts` ASC"
+
+	finalArgs := slices.Concat(joinArgs, args)
+	rows, err := d.db.QueryContext(ctx, query, finalArgs...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	list := make([]int64, 0)
+	for rows.Next() {
+		var ts int64
+		if err := rows.Scan(&ts); err != nil {
+			return nil, err
+		}
+		list = append(list, ts)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

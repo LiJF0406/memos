@@ -40,6 +40,9 @@ const (
 	NoteServiceCreateNoteProcedure = "/memos.api.v1.NoteService/CreateNote"
 	// NoteServiceListNotesProcedure is the fully-qualified name of the NoteService's ListNotes RPC.
 	NoteServiceListNotesProcedure = "/memos.api.v1.NoteService/ListNotes"
+	// NoteServiceListNoteStatsProcedure is the fully-qualified name of the NoteService's ListNoteStats
+	// RPC.
+	NoteServiceListNoteStatsProcedure = "/memos.api.v1.NoteService/ListNoteStats"
 	// NoteServiceGetNoteProcedure is the fully-qualified name of the NoteService's GetNote RPC.
 	NoteServiceGetNoteProcedure = "/memos.api.v1.NoteService/GetNote"
 	// NoteServiceUpdateNoteProcedure is the fully-qualified name of the NoteService's UpdateNote RPC.
@@ -73,6 +76,8 @@ type NoteServiceClient interface {
 	CreateNote(context.Context, *connect.Request[v1.CreateNoteRequest]) (*connect.Response[v1.Note], error)
 	// ListNotes lists notes with pagination and filter.
 	ListNotes(context.Context, *connect.Request[v1.ListNotesRequest]) (*connect.Response[v1.ListNotesResponse], error)
+	// ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+	ListNoteStats(context.Context, *connect.Request[v1.ListNoteStatsRequest]) (*connect.Response[v1.ListNoteStatsResponse], error)
 	// GetNote gets a note.
 	GetNote(context.Context, *connect.Request[v1.GetNoteRequest]) (*connect.Response[v1.Note], error)
 	// UpdateNote updates a note.
@@ -108,6 +113,12 @@ func NewNoteServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+NoteServiceListNotesProcedure,
 			connect.WithSchema(noteServiceMethods.ByName("ListNotes")),
+			connect.WithClientOptions(opts...),
+		),
+		listNoteStats: connect.NewClient[v1.ListNoteStatsRequest, v1.ListNoteStatsResponse](
+			httpClient,
+			baseURL+NoteServiceListNoteStatsProcedure,
+			connect.WithSchema(noteServiceMethods.ByName("ListNoteStats")),
 			connect.WithClientOptions(opts...),
 		),
 		getNote: connect.NewClient[v1.GetNoteRequest, v1.Note](
@@ -153,6 +164,7 @@ func NewNoteServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 type noteServiceClient struct {
 	createNote    *connect.Client[v1.CreateNoteRequest, v1.Note]
 	listNotes     *connect.Client[v1.ListNotesRequest, v1.ListNotesResponse]
+	listNoteStats *connect.Client[v1.ListNoteStatsRequest, v1.ListNoteStatsResponse]
 	getNote       *connect.Client[v1.GetNoteRequest, v1.Note]
 	updateNote    *connect.Client[v1.UpdateNoteRequest, v1.Note]
 	deleteNote    *connect.Client[v1.DeleteNoteRequest, emptypb.Empty]
@@ -169,6 +181,11 @@ func (c *noteServiceClient) CreateNote(ctx context.Context, req *connect.Request
 // ListNotes calls memos.api.v1.NoteService.ListNotes.
 func (c *noteServiceClient) ListNotes(ctx context.Context, req *connect.Request[v1.ListNotesRequest]) (*connect.Response[v1.ListNotesResponse], error) {
 	return c.listNotes.CallUnary(ctx, req)
+}
+
+// ListNoteStats calls memos.api.v1.NoteService.ListNoteStats.
+func (c *noteServiceClient) ListNoteStats(ctx context.Context, req *connect.Request[v1.ListNoteStatsRequest]) (*connect.Response[v1.ListNoteStatsResponse], error) {
+	return c.listNoteStats.CallUnary(ctx, req)
 }
 
 // GetNote calls memos.api.v1.NoteService.GetNote.
@@ -207,6 +224,8 @@ type NoteServiceHandler interface {
 	CreateNote(context.Context, *connect.Request[v1.CreateNoteRequest]) (*connect.Response[v1.Note], error)
 	// ListNotes lists notes with pagination and filter.
 	ListNotes(context.Context, *connect.Request[v1.ListNotesRequest]) (*connect.Response[v1.ListNotesResponse], error)
+	// ListNoteStats lists the creation timestamps of all notes accessible to the current user.
+	ListNoteStats(context.Context, *connect.Request[v1.ListNoteStatsRequest]) (*connect.Response[v1.ListNoteStatsResponse], error)
 	// GetNote gets a note.
 	GetNote(context.Context, *connect.Request[v1.GetNoteRequest]) (*connect.Response[v1.Note], error)
 	// UpdateNote updates a note.
@@ -238,6 +257,12 @@ func NewNoteServiceHandler(svc NoteServiceHandler, opts ...connect.HandlerOption
 		NoteServiceListNotesProcedure,
 		svc.ListNotes,
 		connect.WithSchema(noteServiceMethods.ByName("ListNotes")),
+		connect.WithHandlerOptions(opts...),
+	)
+	noteServiceListNoteStatsHandler := connect.NewUnaryHandler(
+		NoteServiceListNoteStatsProcedure,
+		svc.ListNoteStats,
+		connect.WithSchema(noteServiceMethods.ByName("ListNoteStats")),
 		connect.WithHandlerOptions(opts...),
 	)
 	noteServiceGetNoteHandler := connect.NewUnaryHandler(
@@ -282,6 +307,8 @@ func NewNoteServiceHandler(svc NoteServiceHandler, opts ...connect.HandlerOption
 			noteServiceCreateNoteHandler.ServeHTTP(w, r)
 		case NoteServiceListNotesProcedure:
 			noteServiceListNotesHandler.ServeHTTP(w, r)
+		case NoteServiceListNoteStatsProcedure:
+			noteServiceListNoteStatsHandler.ServeHTTP(w, r)
 		case NoteServiceGetNoteProcedure:
 			noteServiceGetNoteHandler.ServeHTTP(w, r)
 		case NoteServiceUpdateNoteProcedure:
@@ -309,6 +336,10 @@ func (UnimplementedNoteServiceHandler) CreateNote(context.Context, *connect.Requ
 
 func (UnimplementedNoteServiceHandler) ListNotes(context.Context, *connect.Request[v1.ListNotesRequest]) (*connect.Response[v1.ListNotesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.NoteService.ListNotes is not implemented"))
+}
+
+func (UnimplementedNoteServiceHandler) ListNoteStats(context.Context, *connect.Request[v1.ListNoteStatsRequest]) (*connect.Response[v1.ListNoteStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("memos.api.v1.NoteService.ListNoteStats is not implemented"))
 }
 
 func (UnimplementedNoteServiceHandler) GetNote(context.Context, *connect.Request[v1.GetNoteRequest]) (*connect.Response[v1.Note], error) {

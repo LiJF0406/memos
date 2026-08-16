@@ -7,12 +7,15 @@ import { MonthNavigator } from "./MonthNavigator";
 
 interface Props {
   statisticsData: StatisticsData;
+  onDateClick?: (date: string) => void;
+  selectedDate?: string;
 }
 
 const StatisticsView = (props: Props) => {
-  const { statisticsData } = props;
+  const { statisticsData, onDateClick, selectedDate } = props;
   const { activityStats, timeBasis } = statisticsData;
   const navigateToDateFilter = useDateFilterNavigation();
+  const handleDateClick = onDateClick ?? navigateToDateFilter;
   const [visibleMonthString, setVisibleMonthString] = useState(dayjs().format("YYYY-MM"));
 
   return (
@@ -29,7 +32,8 @@ const StatisticsView = (props: Props) => {
           month={visibleMonthString}
           data={activityStats}
           maxCount={calculateMaxCount(activityStats)}
-          onClick={navigateToDateFilter}
+          onClick={handleDateClick}
+          selectedDate={selectedDate}
           timeBasis={timeBasis}
         />
       </div>

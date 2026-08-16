@@ -7,6 +7,9 @@ vi.mock("@/hooks/useUserQueries", () => ({
   useAllUserStats: vi.fn(),
   useUserStats: vi.fn(),
 }));
+vi.mock("@/hooks/useNoteQueries", () => ({
+  useNoteCreatedTs: vi.fn(),
+}));
 vi.mock("@/hooks/useMemoQueries", () => ({
   useMemos: () => ({ data: undefined, isLoading: false }),
 }));
@@ -24,6 +27,7 @@ vi.mock("@/contexts/ViewContext", async () => {
 });
 
 import { useAllUserStats, useUserStats } from "@/hooks/useUserQueries";
+import { useNoteCreatedTs } from "@/hooks/useNoteQueries";
 import { useFilteredMemoStats } from "@/hooks/useFilteredMemoStats";
 
 const wrapper = ({ children }: { children: ReactNode }) => children as never;
@@ -39,6 +43,10 @@ describe("useFilteredMemoStats", () => {
       data: [],
       isLoading: false,
     } as ReturnType<typeof useAllUserStats>);
+    vi.mocked(useNoteCreatedTs).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as ReturnType<typeof useNoteCreatedTs>);
     vi.mocked(useUserStats).mockReturnValue({
       data: {
         memoCreatedTimestamps: [ts(2026, 5, 1), ts(2026, 5, 1), ts(2026, 5, 2)],
@@ -79,6 +87,23 @@ describe("useFilteredMemoStats", () => {
 
     expect(result.current.statistics.activityStats).toEqual({ "2026-05-03": 3 });
     expect(result.current.statistics.timeBasis).toBe("update_time");
+  });
+
+  it("uses note creation timestamps for the notes context", () => {
+    vi.mocked(useNoteCreatedTs).mockReturnValue({
+      data: [ts(2026, 5, 1), ts(2026, 5, 2)],
+      isLoading: false,
+    } as ReturnType<typeof useNoteCreatedTs>);
+    mockUseView.mockReturnValue({
+      timeBasis: "create_time",
+      orderByTimeAsc: false,
+      toggleSortOrder: vi.fn(),
+      setTimeBasis: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useFilteredMemoStats({ context: "notes" }), { wrapper });
+
+    expect(result.current.statistics.activityStats).toEqual({ "2026-05-01": 1, "2026-05-02": 1 });
   });
 
   it("falls back to created timestamps when updated array is empty (old server)", () => {

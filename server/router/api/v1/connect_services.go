@@ -617,6 +617,14 @@ func (s *ConnectServiceHandler) ListNotes(ctx context.Context, req *connect.Requ
 	return connect.NewResponse(resp), nil
 }
 
+func (s *ConnectServiceHandler) ListNoteStats(ctx context.Context, req *connect.Request[v1pb.ListNoteStatsRequest]) (*connect.Response[v1pb.ListNoteStatsResponse], error) {
+	resp, err := s.APIV1Service.ListNoteStats(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
 func (s *ConnectServiceHandler) GetNote(ctx context.Context, req *connect.Request[v1pb.GetNoteRequest]) (*connect.Response[v1pb.Note], error) {
 	resp, err := s.APIV1Service.GetNote(ctx, req.Msg)
 	if err != nil {

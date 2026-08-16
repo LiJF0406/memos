@@ -455,9 +455,14 @@ type ListNotesRequest struct {
 	Tag string `protobuf:"bytes,5,opt,name=tag,proto3" json:"tag,omitempty"`
 	// Optional. The order to sort results by.
 	// Default to "create_time desc". Supports "update_time desc" and "update_time asc".
-	OrderBy       string `protobuf:"bytes,6,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	OrderBy string `protobuf:"bytes,6,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
+	// Optional. Only return notes created at or after this timestamp.
+	// Combined with `created_ts_before` to form a half-open interval [after, before).
+	CreatedTsAfter *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_ts_after,json=createdTsAfter,proto3" json:"created_ts_after,omitempty"`
+	// Optional. Only return notes created strictly before this timestamp.
+	CreatedTsBefore *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_ts_before,json=createdTsBefore,proto3" json:"created_ts_before,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ListNotesRequest) Reset() {
@@ -532,6 +537,20 @@ func (x *ListNotesRequest) GetOrderBy() string {
 	return ""
 }
 
+func (x *ListNotesRequest) GetCreatedTsAfter() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedTsAfter
+	}
+	return nil
+}
+
+func (x *ListNotesRequest) GetCreatedTsBefore() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedTsBefore
+	}
+	return nil
+}
+
 type ListNotesResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The list of notes.
@@ -586,6 +605,90 @@ func (x *ListNotesResponse) GetNextPageToken() string {
 	return ""
 }
 
+// ListNoteStatsRequest lists the creation timestamps of all notes
+// accessible to the current user, including shared folders.
+type ListNoteStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNoteStatsRequest) Reset() {
+	*x = ListNoteStatsRequest{}
+	mi := &file_api_v1_note_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNoteStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNoteStatsRequest) ProtoMessage() {}
+
+func (x *ListNoteStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_note_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNoteStatsRequest.ProtoReflect.Descriptor instead.
+func (*ListNoteStatsRequest) Descriptor() ([]byte, []int) {
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{6}
+}
+
+// ListNoteStatsResponse contains the creation timestamps of the notes.
+type ListNoteStatsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The creation timestamps of all accessible notes.
+	CreatedTs     []*timestamppb.Timestamp `protobuf:"bytes,1,rep,name=created_ts,json=createdTs,proto3" json:"created_ts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNoteStatsResponse) Reset() {
+	*x = ListNoteStatsResponse{}
+	mi := &file_api_v1_note_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNoteStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNoteStatsResponse) ProtoMessage() {}
+
+func (x *ListNoteStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_v1_note_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNoteStatsResponse.ProtoReflect.Descriptor instead.
+func (*ListNoteStatsResponse) Descriptor() ([]byte, []int) {
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListNoteStatsResponse) GetCreatedTs() []*timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedTs
+	}
+	return nil
+}
+
 type GetNoteRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Required. The resource name of the note.
@@ -597,7 +700,7 @@ type GetNoteRequest struct {
 
 func (x *GetNoteRequest) Reset() {
 	*x = GetNoteRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[6]
+	mi := &file_api_v1_note_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -609,7 +712,7 @@ func (x *GetNoteRequest) String() string {
 func (*GetNoteRequest) ProtoMessage() {}
 
 func (x *GetNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[6]
+	mi := &file_api_v1_note_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -622,7 +725,7 @@ func (x *GetNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNoteRequest.ProtoReflect.Descriptor instead.
 func (*GetNoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{6}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetNoteRequest) GetName() string {
@@ -645,7 +748,7 @@ type UpdateNoteRequest struct {
 
 func (x *UpdateNoteRequest) Reset() {
 	*x = UpdateNoteRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[7]
+	mi := &file_api_v1_note_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -657,7 +760,7 @@ func (x *UpdateNoteRequest) String() string {
 func (*UpdateNoteRequest) ProtoMessage() {}
 
 func (x *UpdateNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[7]
+	mi := &file_api_v1_note_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -670,7 +773,7 @@ func (x *UpdateNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNoteRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{7}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateNoteRequest) GetNote() *Note {
@@ -698,7 +801,7 @@ type DeleteNoteRequest struct {
 
 func (x *DeleteNoteRequest) Reset() {
 	*x = DeleteNoteRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[8]
+	mi := &file_api_v1_note_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -710,7 +813,7 @@ func (x *DeleteNoteRequest) String() string {
 func (*DeleteNoteRequest) ProtoMessage() {}
 
 func (x *DeleteNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[8]
+	mi := &file_api_v1_note_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +826,7 @@ func (x *DeleteNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNoteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{8}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteNoteRequest) GetName() string {
@@ -744,7 +847,7 @@ type ListNoteLinksRequest struct {
 
 func (x *ListNoteLinksRequest) Reset() {
 	*x = ListNoteLinksRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[9]
+	mi := &file_api_v1_note_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -756,7 +859,7 @@ func (x *ListNoteLinksRequest) String() string {
 func (*ListNoteLinksRequest) ProtoMessage() {}
 
 func (x *ListNoteLinksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[9]
+	mi := &file_api_v1_note_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,7 +872,7 @@ func (x *ListNoteLinksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNoteLinksRequest.ProtoReflect.Descriptor instead.
 func (*ListNoteLinksRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{9}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListNoteLinksRequest) GetName() string {
@@ -791,7 +894,7 @@ type ListNoteLinksResponse struct {
 
 func (x *ListNoteLinksResponse) Reset() {
 	*x = ListNoteLinksResponse{}
-	mi := &file_api_v1_note_service_proto_msgTypes[10]
+	mi := &file_api_v1_note_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -803,7 +906,7 @@ func (x *ListNoteLinksResponse) String() string {
 func (*ListNoteLinksResponse) ProtoMessage() {}
 
 func (x *ListNoteLinksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[10]
+	mi := &file_api_v1_note_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -816,7 +919,7 @@ func (x *ListNoteLinksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNoteLinksResponse.ProtoReflect.Descriptor instead.
 func (*ListNoteLinksResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{10}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListNoteLinksResponse) GetLinks() []*NoteLink {
@@ -844,7 +947,7 @@ type ExportNoteRequest struct {
 
 func (x *ExportNoteRequest) Reset() {
 	*x = ExportNoteRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[11]
+	mi := &file_api_v1_note_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -856,7 +959,7 @@ func (x *ExportNoteRequest) String() string {
 func (*ExportNoteRequest) ProtoMessage() {}
 
 func (x *ExportNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[11]
+	mi := &file_api_v1_note_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -869,7 +972,7 @@ func (x *ExportNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportNoteRequest.ProtoReflect.Descriptor instead.
 func (*ExportNoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{11}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ExportNoteRequest) GetName() string {
@@ -891,7 +994,7 @@ type ExportNoteResponse struct {
 
 func (x *ExportNoteResponse) Reset() {
 	*x = ExportNoteResponse{}
-	mi := &file_api_v1_note_service_proto_msgTypes[12]
+	mi := &file_api_v1_note_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +1006,7 @@ func (x *ExportNoteResponse) String() string {
 func (*ExportNoteResponse) ProtoMessage() {}
 
 func (x *ExportNoteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[12]
+	mi := &file_api_v1_note_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +1019,7 @@ func (x *ExportNoteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportNoteResponse.ProtoReflect.Descriptor instead.
 func (*ExportNoteResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{12}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ExportNoteResponse) GetTitle() string {
@@ -948,7 +1051,7 @@ type ImportNoteRequest struct {
 
 func (x *ImportNoteRequest) Reset() {
 	*x = ImportNoteRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[13]
+	mi := &file_api_v1_note_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1063,7 @@ func (x *ImportNoteRequest) String() string {
 func (*ImportNoteRequest) ProtoMessage() {}
 
 func (x *ImportNoteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[13]
+	mi := &file_api_v1_note_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1076,7 @@ func (x *ImportNoteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportNoteRequest.ProtoReflect.Descriptor instead.
 func (*ImportNoteRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{13}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ImportNoteRequest) GetTitle() string {
@@ -1010,7 +1113,7 @@ type CreateNoteFolderRequest struct {
 
 func (x *CreateNoteFolderRequest) Reset() {
 	*x = CreateNoteFolderRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[14]
+	mi := &file_api_v1_note_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1022,7 +1125,7 @@ func (x *CreateNoteFolderRequest) String() string {
 func (*CreateNoteFolderRequest) ProtoMessage() {}
 
 func (x *CreateNoteFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[14]
+	mi := &file_api_v1_note_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1035,7 +1138,7 @@ func (x *CreateNoteFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNoteFolderRequest.ProtoReflect.Descriptor instead.
 func (*CreateNoteFolderRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{14}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateNoteFolderRequest) GetNoteFolder() *NoteFolder {
@@ -1063,7 +1166,7 @@ type ListNoteFoldersRequest struct {
 
 func (x *ListNoteFoldersRequest) Reset() {
 	*x = ListNoteFoldersRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[15]
+	mi := &file_api_v1_note_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1075,7 +1178,7 @@ func (x *ListNoteFoldersRequest) String() string {
 func (*ListNoteFoldersRequest) ProtoMessage() {}
 
 func (x *ListNoteFoldersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[15]
+	mi := &file_api_v1_note_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1088,7 +1191,7 @@ func (x *ListNoteFoldersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNoteFoldersRequest.ProtoReflect.Descriptor instead.
 func (*ListNoteFoldersRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{15}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListNoteFoldersRequest) GetParent() string {
@@ -1108,7 +1211,7 @@ type ListNoteFoldersResponse struct {
 
 func (x *ListNoteFoldersResponse) Reset() {
 	*x = ListNoteFoldersResponse{}
-	mi := &file_api_v1_note_service_proto_msgTypes[16]
+	mi := &file_api_v1_note_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1120,7 +1223,7 @@ func (x *ListNoteFoldersResponse) String() string {
 func (*ListNoteFoldersResponse) ProtoMessage() {}
 
 func (x *ListNoteFoldersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[16]
+	mi := &file_api_v1_note_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1133,7 +1236,7 @@ func (x *ListNoteFoldersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNoteFoldersResponse.ProtoReflect.Descriptor instead.
 func (*ListNoteFoldersResponse) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{16}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListNoteFoldersResponse) GetNoteFolders() []*NoteFolder {
@@ -1156,7 +1259,7 @@ type UpdateNoteFolderRequest struct {
 
 func (x *UpdateNoteFolderRequest) Reset() {
 	*x = UpdateNoteFolderRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[17]
+	mi := &file_api_v1_note_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1168,7 +1271,7 @@ func (x *UpdateNoteFolderRequest) String() string {
 func (*UpdateNoteFolderRequest) ProtoMessage() {}
 
 func (x *UpdateNoteFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[17]
+	mi := &file_api_v1_note_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1181,7 +1284,7 @@ func (x *UpdateNoteFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateNoteFolderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateNoteFolderRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{17}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *UpdateNoteFolderRequest) GetNoteFolder() *NoteFolder {
@@ -1209,7 +1312,7 @@ type DeleteNoteFolderRequest struct {
 
 func (x *DeleteNoteFolderRequest) Reset() {
 	*x = DeleteNoteFolderRequest{}
-	mi := &file_api_v1_note_service_proto_msgTypes[18]
+	mi := &file_api_v1_note_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1221,7 +1324,7 @@ func (x *DeleteNoteFolderRequest) String() string {
 func (*DeleteNoteFolderRequest) ProtoMessage() {}
 
 func (x *DeleteNoteFolderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_v1_note_service_proto_msgTypes[18]
+	mi := &file_api_v1_note_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1234,7 +1337,7 @@ func (x *DeleteNoteFolderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNoteFolderRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNoteFolderRequest) Descriptor() ([]byte, []int) {
-	return file_api_v1_note_service_proto_rawDescGZIP(), []int{18}
+	return file_api_v1_note_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteNoteFolderRequest) GetName() string {
@@ -1290,7 +1393,7 @@ const file_api_v1_note_service_proto_rawDesc = "" +
 	"\a_parent\"^\n" +
 	"\x11CreateNoteRequest\x12+\n" +
 	"\x04note\x18\x01 \x01(\v2\x12.memos.api.v1.NoteB\x03\xe0A\x02R\x04note\x12\x1c\n" +
-	"\anote_id\x18\x02 \x01(\tB\x03\xe0A\x01R\x06noteId\"\xd4\x01\n" +
+	"\anote_id\x18\x02 \x01(\tB\x03\xe0A\x01R\x06noteId\"\xec\x02\n" +
 	"\x10ListNotesRequest\x12 \n" +
 	"\tpage_size\x18\x01 \x01(\x05B\x03\xe0A\x01R\bpageSize\x12\"\n" +
 	"\n" +
@@ -1298,10 +1401,16 @@ const file_api_v1_note_service_proto_rawDesc = "" +
 	"\x06folder\x18\x03 \x01(\tB\x03\xe0A\x01R\x06folder\x12&\n" +
 	"\ftitle_search\x18\x04 \x01(\tB\x03\xe0A\x01R\vtitleSearch\x12\x15\n" +
 	"\x03tag\x18\x05 \x01(\tB\x03\xe0A\x01R\x03tag\x12\x1e\n" +
-	"\border_by\x18\x06 \x01(\tB\x03\xe0A\x01R\aorderBy\"e\n" +
+	"\border_by\x18\x06 \x01(\tB\x03\xe0A\x01R\aorderBy\x12I\n" +
+	"\x10created_ts_after\x18\a \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0ecreatedTsAfter\x12K\n" +
+	"\x11created_ts_before\x18\b \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x01R\x0fcreatedTsBefore\"e\n" +
 	"\x11ListNotesResponse\x12(\n" +
 	"\x05notes\x18\x01 \x03(\v2\x12.memos.api.v1.NoteR\x05notes\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"?\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x16\n" +
+	"\x14ListNoteStatsRequest\"R\n" +
+	"\x15ListNoteStatsResponse\x129\n" +
+	"\n" +
+	"created_ts\x18\x01 \x03(\v2\x1a.google.protobuf.TimestampR\tcreatedTs\"?\n" +
 	"\x0eGetNoteRequest\x12-\n" +
 	"\x04name\x18\x01 \x01(\tB\x19\xe0A\x02\xfaA\x13\n" +
 	"\x11memos.api.v1/NoteR\x04name\"\x82\x01\n" +
@@ -1351,11 +1460,12 @@ const file_api_v1_note_service_proto_rawDesc = "" +
 	"\x04NOTE\x10\x01\x12\b\n" +
 	"\x04MEMO\x10\x02\x12\x0e\n" +
 	"\n" +
-	"UNRESOLVED\x10\x032\x9a\a\n" +
+	"UNRESOLVED\x10\x032\x90\b\n" +
 	"\vNoteService\x12e\n" +
 	"\n" +
 	"CreateNote\x12\x1f.memos.api.v1.CreateNoteRequest\x1a\x12.memos.api.v1.Note\"\"\xdaA\x04note\x82\xd3\xe4\x93\x02\x15:\x04note\"\r/api/v1/notes\x12f\n" +
-	"\tListNotes\x12\x1e.memos.api.v1.ListNotesRequest\x1a\x1f.memos.api.v1.ListNotesResponse\"\x18\xdaA\x00\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/notes\x12b\n" +
+	"\tListNotes\x12\x1e.memos.api.v1.ListNotesRequest\x1a\x1f.memos.api.v1.ListNotesResponse\"\x18\xdaA\x00\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/notes\x12t\n" +
+	"\rListNoteStats\x12\".memos.api.v1.ListNoteStatsRequest\x1a#.memos.api.v1.ListNoteStatsResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/note-stats\x12b\n" +
 	"\aGetNote\x12\x1c.memos.api.v1.GetNoteRequest\x1a\x12.memos.api.v1.Note\"%\xdaA\x04name\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/{name=notes/*}\x12\x7f\n" +
 	"\n" +
 	"UpdateNote\x12\x1f.memos.api.v1.UpdateNoteRequest\x1a\x12.memos.api.v1.Note\"<\xdaA\x10note,update_mask\x82\xd3\xe4\x93\x02#:\x04note2\x1b/api/v1/{note.name=notes/*}\x12l\n" +
@@ -1386,7 +1496,7 @@ func file_api_v1_note_service_proto_rawDescGZIP() []byte {
 }
 
 var file_api_v1_note_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_v1_note_service_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_api_v1_note_service_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_api_v1_note_service_proto_goTypes = []any{
 	(NoteLinkTargetType)(0),         // 0: memos.api.v1.NoteLinkTargetType
 	(*NoteLink)(nil),                // 1: memos.api.v1.NoteLink
@@ -1395,70 +1505,77 @@ var file_api_v1_note_service_proto_goTypes = []any{
 	(*CreateNoteRequest)(nil),       // 4: memos.api.v1.CreateNoteRequest
 	(*ListNotesRequest)(nil),        // 5: memos.api.v1.ListNotesRequest
 	(*ListNotesResponse)(nil),       // 6: memos.api.v1.ListNotesResponse
-	(*GetNoteRequest)(nil),          // 7: memos.api.v1.GetNoteRequest
-	(*UpdateNoteRequest)(nil),       // 8: memos.api.v1.UpdateNoteRequest
-	(*DeleteNoteRequest)(nil),       // 9: memos.api.v1.DeleteNoteRequest
-	(*ListNoteLinksRequest)(nil),    // 10: memos.api.v1.ListNoteLinksRequest
-	(*ListNoteLinksResponse)(nil),   // 11: memos.api.v1.ListNoteLinksResponse
-	(*ExportNoteRequest)(nil),       // 12: memos.api.v1.ExportNoteRequest
-	(*ExportNoteResponse)(nil),      // 13: memos.api.v1.ExportNoteResponse
-	(*ImportNoteRequest)(nil),       // 14: memos.api.v1.ImportNoteRequest
-	(*CreateNoteFolderRequest)(nil), // 15: memos.api.v1.CreateNoteFolderRequest
-	(*ListNoteFoldersRequest)(nil),  // 16: memos.api.v1.ListNoteFoldersRequest
-	(*ListNoteFoldersResponse)(nil), // 17: memos.api.v1.ListNoteFoldersResponse
-	(*UpdateNoteFolderRequest)(nil), // 18: memos.api.v1.UpdateNoteFolderRequest
-	(*DeleteNoteFolderRequest)(nil), // 19: memos.api.v1.DeleteNoteFolderRequest
-	(*timestamppb.Timestamp)(nil),   // 20: google.protobuf.Timestamp
-	(*fieldmaskpb.FieldMask)(nil),   // 21: google.protobuf.FieldMask
-	(*emptypb.Empty)(nil),           // 22: google.protobuf.Empty
+	(*ListNoteStatsRequest)(nil),    // 7: memos.api.v1.ListNoteStatsRequest
+	(*ListNoteStatsResponse)(nil),   // 8: memos.api.v1.ListNoteStatsResponse
+	(*GetNoteRequest)(nil),          // 9: memos.api.v1.GetNoteRequest
+	(*UpdateNoteRequest)(nil),       // 10: memos.api.v1.UpdateNoteRequest
+	(*DeleteNoteRequest)(nil),       // 11: memos.api.v1.DeleteNoteRequest
+	(*ListNoteLinksRequest)(nil),    // 12: memos.api.v1.ListNoteLinksRequest
+	(*ListNoteLinksResponse)(nil),   // 13: memos.api.v1.ListNoteLinksResponse
+	(*ExportNoteRequest)(nil),       // 14: memos.api.v1.ExportNoteRequest
+	(*ExportNoteResponse)(nil),      // 15: memos.api.v1.ExportNoteResponse
+	(*ImportNoteRequest)(nil),       // 16: memos.api.v1.ImportNoteRequest
+	(*CreateNoteFolderRequest)(nil), // 17: memos.api.v1.CreateNoteFolderRequest
+	(*ListNoteFoldersRequest)(nil),  // 18: memos.api.v1.ListNoteFoldersRequest
+	(*ListNoteFoldersResponse)(nil), // 19: memos.api.v1.ListNoteFoldersResponse
+	(*UpdateNoteFolderRequest)(nil), // 20: memos.api.v1.UpdateNoteFolderRequest
+	(*DeleteNoteFolderRequest)(nil), // 21: memos.api.v1.DeleteNoteFolderRequest
+	(*timestamppb.Timestamp)(nil),   // 22: google.protobuf.Timestamp
+	(*fieldmaskpb.FieldMask)(nil),   // 23: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),           // 24: google.protobuf.Empty
 }
 var file_api_v1_note_service_proto_depIdxs = []int32{
 	0,  // 0: memos.api.v1.NoteLink.target_type:type_name -> memos.api.v1.NoteLinkTargetType
-	20, // 1: memos.api.v1.Note.create_time:type_name -> google.protobuf.Timestamp
-	20, // 2: memos.api.v1.Note.update_time:type_name -> google.protobuf.Timestamp
+	22, // 1: memos.api.v1.Note.create_time:type_name -> google.protobuf.Timestamp
+	22, // 2: memos.api.v1.Note.update_time:type_name -> google.protobuf.Timestamp
 	1,  // 3: memos.api.v1.Note.links:type_name -> memos.api.v1.NoteLink
 	1,  // 4: memos.api.v1.Note.backlinks:type_name -> memos.api.v1.NoteLink
-	20, // 5: memos.api.v1.NoteFolder.create_time:type_name -> google.protobuf.Timestamp
-	20, // 6: memos.api.v1.NoteFolder.update_time:type_name -> google.protobuf.Timestamp
+	22, // 5: memos.api.v1.NoteFolder.create_time:type_name -> google.protobuf.Timestamp
+	22, // 6: memos.api.v1.NoteFolder.update_time:type_name -> google.protobuf.Timestamp
 	2,  // 7: memos.api.v1.CreateNoteRequest.note:type_name -> memos.api.v1.Note
-	2,  // 8: memos.api.v1.ListNotesResponse.notes:type_name -> memos.api.v1.Note
-	2,  // 9: memos.api.v1.UpdateNoteRequest.note:type_name -> memos.api.v1.Note
-	21, // 10: memos.api.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
-	1,  // 11: memos.api.v1.ListNoteLinksResponse.links:type_name -> memos.api.v1.NoteLink
-	1,  // 12: memos.api.v1.ListNoteLinksResponse.backlinks:type_name -> memos.api.v1.NoteLink
-	3,  // 13: memos.api.v1.CreateNoteFolderRequest.note_folder:type_name -> memos.api.v1.NoteFolder
-	3,  // 14: memos.api.v1.ListNoteFoldersResponse.note_folders:type_name -> memos.api.v1.NoteFolder
-	3,  // 15: memos.api.v1.UpdateNoteFolderRequest.note_folder:type_name -> memos.api.v1.NoteFolder
-	21, // 16: memos.api.v1.UpdateNoteFolderRequest.update_mask:type_name -> google.protobuf.FieldMask
-	4,  // 17: memos.api.v1.NoteService.CreateNote:input_type -> memos.api.v1.CreateNoteRequest
-	5,  // 18: memos.api.v1.NoteService.ListNotes:input_type -> memos.api.v1.ListNotesRequest
-	7,  // 19: memos.api.v1.NoteService.GetNote:input_type -> memos.api.v1.GetNoteRequest
-	8,  // 20: memos.api.v1.NoteService.UpdateNote:input_type -> memos.api.v1.UpdateNoteRequest
-	9,  // 21: memos.api.v1.NoteService.DeleteNote:input_type -> memos.api.v1.DeleteNoteRequest
-	10, // 22: memos.api.v1.NoteService.ListNoteLinks:input_type -> memos.api.v1.ListNoteLinksRequest
-	12, // 23: memos.api.v1.NoteService.ExportNote:input_type -> memos.api.v1.ExportNoteRequest
-	14, // 24: memos.api.v1.NoteService.ImportNote:input_type -> memos.api.v1.ImportNoteRequest
-	15, // 25: memos.api.v1.NoteFolderService.CreateNoteFolder:input_type -> memos.api.v1.CreateNoteFolderRequest
-	16, // 26: memos.api.v1.NoteFolderService.ListNoteFolders:input_type -> memos.api.v1.ListNoteFoldersRequest
-	18, // 27: memos.api.v1.NoteFolderService.UpdateNoteFolder:input_type -> memos.api.v1.UpdateNoteFolderRequest
-	19, // 28: memos.api.v1.NoteFolderService.DeleteNoteFolder:input_type -> memos.api.v1.DeleteNoteFolderRequest
-	2,  // 29: memos.api.v1.NoteService.CreateNote:output_type -> memos.api.v1.Note
-	6,  // 30: memos.api.v1.NoteService.ListNotes:output_type -> memos.api.v1.ListNotesResponse
-	2,  // 31: memos.api.v1.NoteService.GetNote:output_type -> memos.api.v1.Note
-	2,  // 32: memos.api.v1.NoteService.UpdateNote:output_type -> memos.api.v1.Note
-	22, // 33: memos.api.v1.NoteService.DeleteNote:output_type -> google.protobuf.Empty
-	11, // 34: memos.api.v1.NoteService.ListNoteLinks:output_type -> memos.api.v1.ListNoteLinksResponse
-	13, // 35: memos.api.v1.NoteService.ExportNote:output_type -> memos.api.v1.ExportNoteResponse
-	2,  // 36: memos.api.v1.NoteService.ImportNote:output_type -> memos.api.v1.Note
-	3,  // 37: memos.api.v1.NoteFolderService.CreateNoteFolder:output_type -> memos.api.v1.NoteFolder
-	17, // 38: memos.api.v1.NoteFolderService.ListNoteFolders:output_type -> memos.api.v1.ListNoteFoldersResponse
-	3,  // 39: memos.api.v1.NoteFolderService.UpdateNoteFolder:output_type -> memos.api.v1.NoteFolder
-	22, // 40: memos.api.v1.NoteFolderService.DeleteNoteFolder:output_type -> google.protobuf.Empty
-	29, // [29:41] is the sub-list for method output_type
-	17, // [17:29] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	22, // 8: memos.api.v1.ListNotesRequest.created_ts_after:type_name -> google.protobuf.Timestamp
+	22, // 9: memos.api.v1.ListNotesRequest.created_ts_before:type_name -> google.protobuf.Timestamp
+	2,  // 10: memos.api.v1.ListNotesResponse.notes:type_name -> memos.api.v1.Note
+	22, // 11: memos.api.v1.ListNoteStatsResponse.created_ts:type_name -> google.protobuf.Timestamp
+	2,  // 12: memos.api.v1.UpdateNoteRequest.note:type_name -> memos.api.v1.Note
+	23, // 13: memos.api.v1.UpdateNoteRequest.update_mask:type_name -> google.protobuf.FieldMask
+	1,  // 14: memos.api.v1.ListNoteLinksResponse.links:type_name -> memos.api.v1.NoteLink
+	1,  // 15: memos.api.v1.ListNoteLinksResponse.backlinks:type_name -> memos.api.v1.NoteLink
+	3,  // 16: memos.api.v1.CreateNoteFolderRequest.note_folder:type_name -> memos.api.v1.NoteFolder
+	3,  // 17: memos.api.v1.ListNoteFoldersResponse.note_folders:type_name -> memos.api.v1.NoteFolder
+	3,  // 18: memos.api.v1.UpdateNoteFolderRequest.note_folder:type_name -> memos.api.v1.NoteFolder
+	23, // 19: memos.api.v1.UpdateNoteFolderRequest.update_mask:type_name -> google.protobuf.FieldMask
+	4,  // 20: memos.api.v1.NoteService.CreateNote:input_type -> memos.api.v1.CreateNoteRequest
+	5,  // 21: memos.api.v1.NoteService.ListNotes:input_type -> memos.api.v1.ListNotesRequest
+	7,  // 22: memos.api.v1.NoteService.ListNoteStats:input_type -> memos.api.v1.ListNoteStatsRequest
+	9,  // 23: memos.api.v1.NoteService.GetNote:input_type -> memos.api.v1.GetNoteRequest
+	10, // 24: memos.api.v1.NoteService.UpdateNote:input_type -> memos.api.v1.UpdateNoteRequest
+	11, // 25: memos.api.v1.NoteService.DeleteNote:input_type -> memos.api.v1.DeleteNoteRequest
+	12, // 26: memos.api.v1.NoteService.ListNoteLinks:input_type -> memos.api.v1.ListNoteLinksRequest
+	14, // 27: memos.api.v1.NoteService.ExportNote:input_type -> memos.api.v1.ExportNoteRequest
+	16, // 28: memos.api.v1.NoteService.ImportNote:input_type -> memos.api.v1.ImportNoteRequest
+	17, // 29: memos.api.v1.NoteFolderService.CreateNoteFolder:input_type -> memos.api.v1.CreateNoteFolderRequest
+	18, // 30: memos.api.v1.NoteFolderService.ListNoteFolders:input_type -> memos.api.v1.ListNoteFoldersRequest
+	20, // 31: memos.api.v1.NoteFolderService.UpdateNoteFolder:input_type -> memos.api.v1.UpdateNoteFolderRequest
+	21, // 32: memos.api.v1.NoteFolderService.DeleteNoteFolder:input_type -> memos.api.v1.DeleteNoteFolderRequest
+	2,  // 33: memos.api.v1.NoteService.CreateNote:output_type -> memos.api.v1.Note
+	6,  // 34: memos.api.v1.NoteService.ListNotes:output_type -> memos.api.v1.ListNotesResponse
+	8,  // 35: memos.api.v1.NoteService.ListNoteStats:output_type -> memos.api.v1.ListNoteStatsResponse
+	2,  // 36: memos.api.v1.NoteService.GetNote:output_type -> memos.api.v1.Note
+	2,  // 37: memos.api.v1.NoteService.UpdateNote:output_type -> memos.api.v1.Note
+	24, // 38: memos.api.v1.NoteService.DeleteNote:output_type -> google.protobuf.Empty
+	13, // 39: memos.api.v1.NoteService.ListNoteLinks:output_type -> memos.api.v1.ListNoteLinksResponse
+	15, // 40: memos.api.v1.NoteService.ExportNote:output_type -> memos.api.v1.ExportNoteResponse
+	2,  // 41: memos.api.v1.NoteService.ImportNote:output_type -> memos.api.v1.Note
+	3,  // 42: memos.api.v1.NoteFolderService.CreateNoteFolder:output_type -> memos.api.v1.NoteFolder
+	19, // 43: memos.api.v1.NoteFolderService.ListNoteFolders:output_type -> memos.api.v1.ListNoteFoldersResponse
+	3,  // 44: memos.api.v1.NoteFolderService.UpdateNoteFolder:output_type -> memos.api.v1.NoteFolder
+	24, // 45: memos.api.v1.NoteFolderService.DeleteNoteFolder:output_type -> google.protobuf.Empty
+	33, // [33:46] is the sub-list for method output_type
+	20, // [20:33] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_api_v1_note_service_proto_init() }
@@ -1468,14 +1585,14 @@ func file_api_v1_note_service_proto_init() {
 	}
 	file_api_v1_note_service_proto_msgTypes[1].OneofWrappers = []any{}
 	file_api_v1_note_service_proto_msgTypes[2].OneofWrappers = []any{}
-	file_api_v1_note_service_proto_msgTypes[13].OneofWrappers = []any{}
+	file_api_v1_note_service_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_v1_note_service_proto_rawDesc), len(file_api_v1_note_service_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   19,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
