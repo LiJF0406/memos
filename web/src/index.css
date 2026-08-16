@@ -33,7 +33,7 @@
 }
 
 /* Tiptap WYSIWYG memo editor */
-.memo-wysiwyg,
+.memo-wysiwyg p.is-editor-empty:first-child::before,
 .note-wysiwyg p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -49,7 +49,7 @@
    Dropping the final block's bottom margin keeps both editor modes the same
    height. Scoped with `>` to the top-level block only (nested last children,
    e.g. the last list item, keep their spacing). */
-.memo-wysiwyg,
+.memo-wysiwyg > :last-child,
 .note-wysiwyg > :last-child {
   margin-bottom: 0;
 }
@@ -58,30 +58,30 @@
    with the read-only memo view (MemoContent renders those via TaskListItem.tsx
    and CodeBlock.tsx), so unlike the elements in markdownStyles.ts they stay
    local to the editor here rather than in the shared style token. */
-.memo-wysiwyg,
+.memo-wysiwyg ul[data-type="taskList"],
 .note-wysiwyg ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
 }
 
-.memo-wysiwyg,
+.memo-wysiwyg ul[data-type="taskList"] li,
 .note-wysiwyg ul[data-type="taskList"] li {
   display: flex;
   gap: 0.5rem;
 }
 
-.memo-wysiwyg,
+.memo-wysiwyg ul[data-type="taskList"] li > label,
 .note-wysiwyg ul[data-type="taskList"] li > label {
   flex: 0 0 auto;
   user-select: none;
 }
 
-.memo-wysiwyg,
+.memo-wysiwyg ul[data-type="taskList"] li > div,
 .note-wysiwyg ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
 }
 
-.memo-wysiwyg,
+.memo-wysiwyg pre,
 .note-wysiwyg pre {
   background: var(--muted);
   border-radius: 0.375rem;
@@ -91,7 +91,7 @@
   white-space: pre-wrap;
 }
 
-.memo-wysiwyg,
+.memo-wysiwyg pre code,
 .note-wysiwyg pre code {
   background: transparent;
   padding: 0;
