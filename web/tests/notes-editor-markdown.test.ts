@@ -2,7 +2,11 @@ import { Editor } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { Image } from "@/components/Notes/NoteEditor/Image";
-import { IMAGE_INPUT_RULE, LINK_INPUT_RULE } from "@/components/Notes/NoteEditor/MarkdownInputRules";
+import {
+  applyLinkInputRule,
+  IMAGE_INPUT_RULE,
+  LINK_INPUT_RULE,
+} from "@/components/Notes/NoteEditor/MarkdownInputRules";
 
 // Headless editor with the same extension set as the notes editor (shared
 // memo extensions + Image), so markdown links/images are exercised end to end.
@@ -101,5 +105,59 @@ describe("notes editor markdown input rules", () => {
   it("does not match incomplete syntax without a closing bracket", () => {
     expect("[title](https://www.example.com".match(LINK_INPUT_RULE)).toBeNull();
     expect("![alt](https://book.x-zone.site/covers/30255971.jpg".match(IMAGE_INPUT_RULE)).toBeNull();
+  });
+});
+
+describe("notes editor link input rule conversion", () => {
+  it("turns the typed [text](url) syntax into a clickable link", () => {
+    const ed = createNoteEditor("placeholder");
+    // Set the typed syntax as plain text (JSON parse, not markdown).
+    ed.commands.setContent({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "[title](https://www.example.com) " }] }],
+    });
+    const text = ed.getText();
+    const match = LINK_INPUT_RULE.exec(text);
+    expect(match).not.toBeNull();
+
+    const state = ed.state;
+    const tr = state.tr;
+    const applied = applyLinkInputRule(tr, { from: 0, to: text.length }, match!);
+    expect(applied).toBe(true);
+    ed.view.dispatch(tr);
+
+    expect(ed.getJSON().content?.[0]?.content).toContainEqual(
+      expect.objectContaining({
+        type: "text",
+        text: "title",
+        marks: [
+          expect.objectContaining({
+            type: "link",
+            attrs: expect.objectContaining({ href: "https://www.example.com" }),
+          }),
+        ],
+      }),
+    );
+    // The original syntax must survive a save cycle for later editing.
+    expect(ed.getMarkdown().trim()).toBe("[title](https://www.example.com)");
+  });
+
+  it("keeps the raw text when the URL is not allowed", () => {
+    const ed = createNoteEditor("placeholder");
+    ed.commands.setContent({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "[title](javascript:alert(1)) " }] }],
+    });
+    const text = ed.getText();
+    const match = LINK_INPUT_RULE.exec(text);
+    expect(match).not.toBeNull();
+
+    const state = ed.state;
+    const tr = state.tr;
+    const applied = applyLinkInputRule(tr, { from: 0, to: text.length }, match!);
+    ed.view.dispatch(tr);
+
+    expect(applied).toBe(false);
+    expect(ed.getText()).toBe("[title](javascript:alert(1)) ");
   });
 });
