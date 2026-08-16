@@ -23,6 +23,8 @@ const (
 	InboxNamePrefix            = "inboxes/"
 	IdentityProviderNamePrefix = "identity-providers/"
 	WebhookNamePrefix          = "webhooks/"
+	NoteNamePrefix             = "notes/"
+	NoteFolderNamePrefix       = "note_folders/"
 )
 
 // GetNameParentTokens returns the tokens from a resource name.
@@ -128,6 +130,26 @@ func ExtractInboxIDFromName(name string) (int32, error) {
 
 func ExtractIdentityProviderUIDFromName(name string) (string, error) {
 	tokens, err := GetNameParentTokens(name, IdentityProviderNamePrefix)
+	if err != nil {
+		return "", err
+	}
+	return tokens[0], nil
+}
+
+// ExtractNoteUIDFromName returns the note UID from a resource name.
+// e.g., "notes/uuid" -> "uuid".
+func ExtractNoteUIDFromName(name string) (string, error) {
+	tokens, err := GetNameParentTokens(name, NoteNamePrefix)
+	if err != nil {
+		return "", err
+	}
+	return tokens[0], nil
+}
+
+// ExtractNoteFolderUIDFromName returns the note folder UID from a resource name.
+// e.g., "note_folders/uuid" -> "uuid".
+func ExtractNoteFolderUIDFromName(name string) (string, error) {
+	tokens, err := GetNameParentTokens(name, NoteFolderNamePrefix)
 	if err != nil {
 		return "", err
 	}

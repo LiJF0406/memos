@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant FE as 前端 NoteEditor
+    participant SVC as APIV1Service(UpdateNote)
+    participant MD as MarkdownService
+    participant ST as Store/Driver
+    participant DB as SQL(note_link/note_tag)
+
+    FE->>SVC: UpdateNote(note.name, title, content, update_mask)
+    SVC->>SVC: fetchCurrentUser + checkNoteAccess(note)
+    SVC->>MD: ExtractAll(content)
+    MD-->>SVC: {tags:[...], wikilinks:[[...]]}
+    SVC->>SVC: resolveNoteLinkTargets(wikilinks)
+    SVC->>ST: ListNotes(title IN wikilinks)
+    SVC->>ST: ListMemos(payload.title IN ...)
+    ST-->>SVC: 目标 id 列表（未命中→UNRESOLVED）
+    SVC->>ST: SetNoteRelations(noteID, links, tags)
+    ST->>DB: BEGIN; DELETE note_link/note_tag; INSERT ...; COMMIT
+    SVC->>SVC: convertNoteFromStore → 组装 Note
+    SVC-->>FE: Note（含 tags/links 解析结果）

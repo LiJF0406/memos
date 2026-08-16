@@ -81,4 +81,38 @@ type Driver interface {
 	CreateUserIdentity(ctx context.Context, create *UserIdentity) (*UserIdentity, error)
 	ListUserIdentities(ctx context.Context, find *FindUserIdentity) ([]*UserIdentity, error)
 	DeleteUserIdentities(ctx context.Context, delete *DeleteUserIdentity) error
+
+	// Note model related methods.
+	CreateNote(ctx context.Context, create *Note) (*Note, error)
+	ListNotes(ctx context.Context, find *FindNote) ([]*Note, error)
+	UpdateNote(ctx context.Context, update *UpdateNote) error
+	DeleteNote(ctx context.Context, delete *DeleteNote) error
+
+	// NoteFolder model related methods.
+	CreateNoteFolder(ctx context.Context, create *NoteFolder) (*NoteFolder, error)
+	ListNoteFolders(ctx context.Context, find *FindNoteFolder) ([]*NoteFolder, error)
+	UpdateNoteFolder(ctx context.Context, update *UpdateNoteFolder) error
+	DeleteNoteFolder(ctx context.Context, delete *DeleteNoteFolder) error
+
+	// NoteLink model related methods.
+	UpsertNoteLink(ctx context.Context, create *NoteLink) (*NoteLink, error)
+	ListNoteLinks(ctx context.Context, find *FindNoteLink) ([]*NoteLink, error)
+	DeleteNoteLinks(ctx context.Context, delete *DeleteNoteLink) error
+
+	// NoteTag model related methods.
+	UpsertNoteTag(ctx context.Context, create *NoteTag) (*NoteTag, error)
+	ListNoteTags(ctx context.Context, find *FindNoteTag) ([]*NoteTag, error)
+	DeleteNoteTags(ctx context.Context, delete *DeleteNoteTag) error
+
+	// SetNoteRelations atomically replaces the links and tags for a note.
+	SetNoteRelations(ctx context.Context, noteID int32, links []*NoteLink, tags []*NoteTag) error
+
+	// DeleteNoteWithRelations deletes a note and its link/tag relations
+	// atomically. Incoming links pointing at the note are degraded to
+	// UNRESOLVED.
+	DeleteNoteWithRelations(ctx context.Context, noteID int32) error
+
+	// DeleteNoteFoldersAndNotes deletes the given note folders and notes
+	// atomically, including their link/tag relations.
+	DeleteNoteFoldersAndNotes(ctx context.Context, folderIDs []int32, noteIDs []int32) error
 }

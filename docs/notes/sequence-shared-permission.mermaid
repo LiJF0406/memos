@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant FE as 前端（非创建者）
+    participant SVC as APIV1Service(UpdateNote)
+    participant ST as Store/Driver
+
+    FE->>SVC: UpdateNote(notes/{uid}, ...)
+    SVC->>SVC: fetchCurrentUser(user)
+    SVC->>ST: GetNote(uid)
+    ST-->>SVC: note
+    SVC->>ST: ListNoteFolders()
+    ST-->>SVC: folders[]
+    alt 创建者本人
+        SVC-->>SVC: 允许（私有笔记本人可编辑）
+    else 文件夹链上存在 shared=true
+        SVC-->>SVC: 允许（共享工作区：全实例注册用户完全控制）
+    else 其它
+        SVC-->>FE: PermissionDenied
+    end
+    SVC->>ST: UpdateNote(...)
+    SVC-->>FE: Note

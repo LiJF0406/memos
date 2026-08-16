@@ -1,0 +1,154 @@
+import { ChevronDownIcon, ChevronRightIcon, FilePlus2Icon, FolderIcon, LinkIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+import type { NoteFolder } from "@/types/proto/api/v1/note_service_pb";
+import { useTranslate } from "@/utils/i18n";
+
+interface NoteFolderTreeProps {
+  folders: NoteFolder[];
+  selectedFolderId: string | null;
+  onSelectFolder: (folderId: string | null) => void;
+  onCreateFolder: (parentId: string | null) => void;
+  onRenameFolder: (folder: NoteFolder) => void;
+  onDeleteFolder: (folder: NoteFolder) => void;
+}
+
+const NoteFolderTree = ({
+  folders,
+  selectedFolderId,
+  onSelectFolder,
+  onCreateFolder,
+  onRenameFolder,
+  onDeleteFolder,
+}: NoteFolderTreeProps) => {
+  const t = useTranslate();
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, NoteFolder[]>();
+    for (const folder of folders) {
+      const parentKey = folder.parent ?? "";
+      const siblings = map.get(parentKey) ?? [];
+      siblings.push(folder);
+      map.set(parentKey, siblings);
+    }
+    for (const siblings of map.values()) {
+      siblings.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return map;
+  }, [folders]);
+
+  const toggle = (name: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  };
+
+  const renderFolder = (folder: NoteFolder, depth: number) => {
+    const children = childrenByParent.get(folder.name) ?? [];
+    const isCollapsed = collapsed.has(folder.name);
+    const isSelected = selectedFolderId === folder.name;
+
+    return (
+      <div key={folder.name}>
+        <div
+          className={cn(
+            "group flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
+            isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+          )}
+          style={{ paddingLeft: `${depth * 14 + 8}px` }}
+          onClick={() => onSelectFolder(folder.name)}
+        >
+          {children.length > 0 ? (
+            <button
+              type="button"
+              className="shrink-0 p-0.5"
+              onClick={(event) => {
+                event.stopPropagation();
+                toggle(folder.name);
+              }}
+            >
+              {isCollapsed ? <ChevronRightIcon className="w-3.5 h-auto" /> : <ChevronDownIcon className="w-3.5 h-auto" />}
+            </button>
+          ) : (
+            <span className="w-5 shrink-0" />
+          )}
+          <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
+          <span className="truncate">{folder.title}</span>
+          {folder.shared && <LinkIcon className="w-3.5 h-auto shrink-0 text-primary" />}
+          <span className="ml-auto hidden group-hover:flex items-center gap-0.5">
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-background/60"
+              title={t("note.new-folder")}
+              onClick={(event) => {
+                event.stopPropagation();
+                onCreateFolder(folder.name);
+              }}
+            >
+              <PlusIcon className="w-3.5 h-auto" />
+            </button>
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-background/60"
+              title={t("note.rename")}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRenameFolder(folder);
+              }}
+            >
+              <PencilIcon className="w-3.5 h-auto" />
+            </button>
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-background/60"
+              title={t("note.delete")}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDeleteFolder(folder);
+              }}
+            >
+              <TrashIcon className="w-3.5 h-auto" />
+            </button>
+          </span>
+        </div>
+        {!isCollapsed && children.map((child) => renderFolder(child, depth + 1))}
+      </div>
+    );
+  };
+
+  const rootFolders = childrenByParent.get("") ?? [];
+
+  return (
+    <div className="w-full flex flex-col gap-0.5">
+      <div
+        className={cn(
+          "flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
+          selectedFolderId === null ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+        )}
+        onClick={() => onSelectFolder(null)}
+      >
+        <span className="w-5 shrink-0" />
+        <FilePlus2Icon className="w-4 h-auto shrink-0 text-muted-foreground" />
+        <span className="truncate font-medium">{t("note.my-notes")}</span>
+      </div>
+      {rootFolders.map((folder) => renderFolder(folder, 0))}
+      <button
+        type="button"
+        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        onClick={() => onCreateFolder(null)}
+      >
+        <PlusIcon className="w-4 h-auto" />
+        <span>{t("note.new-folder")}</span>
+      </button>
+    </div>
+  );
+};
+
+export default NoteFolderTree;

@@ -9,5 +9,7 @@ export * from "./useMediaQuery";
 export * from "./useMemoFilters";
 export * from "./useMemoSorting";
 export * from "./useNavigateTo";
+export * from "./useNoteFolderQueries";
+export * from "./useNoteQueries";
 export * from "./useUserLocale";
 export * from "./useUserTheme";

@@ -28,6 +28,8 @@ type APIV1Service struct {
 	v1pb.UnimplementedAIServiceServer
 	v1pb.UnimplementedShortcutServiceServer
 	v1pb.UnimplementedIdentityProviderServiceServer
+	v1pb.UnimplementedNoteServiceServer
+	v1pb.UnimplementedNoteFolderServiceServer
 
 	Secret                  string
 	Profile                 *profile.Profile
@@ -48,6 +50,7 @@ func NewAPIV1Service(secret string, profile *profile.Profile, store *store.Store
 	markdownService := markdown.NewService(
 		markdown.WithTagExtension(),
 		markdown.WithMentionExtension(),
+		markdown.WithWikiLinkExtension(),
 	)
 	return &APIV1Service{
 		Secret:                   secret,
@@ -121,6 +124,12 @@ func (s *APIV1Service) RegisterGateway(ctx context.Context, echoServer *echo.Ech
 		return err
 	}
 	if err := v1pb.RegisterIdentityProviderServiceHandlerServer(ctx, gwMux, s); err != nil {
+		return err
+	}
+	if err := v1pb.RegisterNoteServiceHandlerServer(ctx, gwMux, s); err != nil {
+		return err
+	}
+	if err := v1pb.RegisterNoteFolderServiceHandlerServer(ctx, gwMux, s); err != nil {
 		return err
 	}
 	gwGroup := echoServer.Group("")

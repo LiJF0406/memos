@@ -34,6 +34,11 @@ func NewTestingStore(ctx context.Context, t *testing.T) *store.Store {
 	if err := store.Migrate(ctx); err != nil {
 		t.Fatalf("failed to migrate db: %v", err)
 	}
+	// Close the store when the test finishes so temp DB files are released
+	// (required on Windows where open SQLite files cannot be removed).
+	t.Cleanup(func() {
+		store.Close()
+	})
 	return store
 }
 

@@ -79,6 +79,7 @@
     "more": "更多",
     "name": "名称",
     "new": "新建",
+    "notes": "笔记",
     "nickname": "昵称",
     "null": "空",
     "or": "或者",
@@ -273,6 +274,27 @@
       "uncheck-all": "全部取消完成",
       "updated": "任务已更新"
     }
+  },
+  "note": {
+    "back": "返回",
+    "confirm-delete-folder": "确定删除该文件夹及其所有笔记？",
+    "confirm-delete-note": "确定删除该笔记？",
+    "delete": "删除",
+    "edit": "编辑",
+    "editor-placeholder": "写点什么…",
+    "export": "导出",
+    "import": "导入",
+    "my-notes": "我的笔记",
+    "new-folder": "新建文件夹",
+    "new-note": "新建笔记",
+    "no-notes": "暂无笔记",
+    "preview": "预览",
+    "rename": "重命名",
+    "search-placeholder": "搜索笔记…",
+    "search-tag-placeholder": "#标签",
+    "shared": "共享工作区",
+    "title": "标题",
+    "untitled": "未命名"
   },
   "message": {
     "archived-successfully": "归档成功",

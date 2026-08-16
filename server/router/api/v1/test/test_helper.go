@@ -44,6 +44,7 @@ func NewTestService(t *testing.T) *TestService {
 	markdownService := markdown.NewService(
 		markdown.WithTagExtension(),
 		markdown.WithMentionExtension(),
+		markdown.WithWikiLinkExtension(),
 	)
 	service := &apiv1.APIV1Service{
 		Secret:          secret,

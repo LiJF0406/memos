@@ -14,10 +14,10 @@ import (
 )
 
 func (s *APIV1Service) touchMemoUpdatedTimestamp(ctx context.Context, memoID int32) error {
-	updatedTs := time.Now().Unix()
+	updatedTsSec := time.Now().Unix()
 	if err := s.Store.UpdateMemo(ctx, &store.UpdateMemo{
 		ID:        memoID,
-		UpdatedTs: &updatedTs,
+		UpdatedTs: &updatedTsSec,
 	}); err != nil {
 		return status.Errorf(codes.Internal, "failed to update memo timestamp")
 	}

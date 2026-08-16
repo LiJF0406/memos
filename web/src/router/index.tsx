@@ -32,6 +32,8 @@ const Explore = lazyWithReload(() => import("@/pages/Explore"));
 const Home = lazyWithReload(() => import("@/pages/Home"));
 const Inboxes = lazyWithReload(() => import("@/pages/Inboxes"));
 const MemoDetail = lazyWithReload(() => import("@/pages/MemoDetail"));
+const NoteDetail = lazyWithReload(() => import("@/pages/NoteDetail"));
+const Notes = lazyWithReload(() => import("@/pages/Notes"));
 const NotFound = lazyWithReload(() => import("@/pages/NotFound"));
 const PermissionDenied = lazyWithReload(() => import("@/pages/PermissionDenied"));
 const Attachments = lazyWithReload(() => import("@/pages/Attachments"));
@@ -93,6 +95,8 @@ export const routeConfig: RouteObject[] = [
                 children: [
                   { path: Routes.ARCHIVED, element: <Archived /> },
                   { path: Routes.SHORTCUTS, element: <Shortcuts /> },
+                  { path: Routes.NOTES, element: <Notes /> },
+                  { path: "notes/:noteId", element: <NoteDetail /> },
                 ],
               },
             ],

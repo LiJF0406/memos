@@ -17,8 +17,9 @@ Memos is a self-hosted note-taking app.
 - Read relevant code before editing; prefer local patterns over new abstractions.
 - Keep diffs scoped. Do not do repo-wide cleanup, dependency churn, or generated-file rewrites unless the task requires it.
 - Do not hand-edit generated proto outputs. Change `.proto` files, then run `buf generate`.
-- Add migrations for all database drivers when schema changes, and update each driver's `LATEST.sql`.
+- Schema changes require a migration for each driver under `store/migration/{sqlite,mysql,postgres}/` (versioned subdir like `0.30/`) plus that driver's `LATEST.sql`.
 - Add public API endpoints to `server/router/api/v1/acl_config.go`.
+- For full-stack API changes (proto -> service -> Connect handler -> frontend hook), load the `memos-api-endpoint` skill (`.opencode/skills/memos-api-endpoint/SKILL.md`).
 - Ask before adding heavy dependencies, changing auth/token behavior, or altering Docker/release workflows.
 
 ## Commands
@@ -29,7 +30,7 @@ Run from the repository root unless a command starts with `cd`.
 # Backend
 go run ./cmd/memos --port 8081    # Start backend dev server
 go test ./...                      # Run all Go tests
-go test -v ./store/...             # Store tests, including DB drivers via TestContainers
+go test -v ./store/...             # Store tests, incl. DB driver + migration tests via TestContainers (requires Docker)
 go test -v -race ./server/...      # Server tests with race detector
 go test -v -race ./internal/...    # Internal package tests with race detector
 go test -v -run TestFoo ./pkg/...  # Run matching Go tests
@@ -39,11 +40,11 @@ golangci-lint run --fix            # Auto-fix lint, including goimports
 
 # Frontend
 cd web && pnpm install             # Install dependencies
-cd web && pnpm dev                 # Dev server on :3001, proxying API to :8081
+cd web && pnpm dev                 # Dev server on :3001, proxies API to :8081; override target with DEV_PROXY_SERVER
 cd web && pnpm lint                # Type check + Biome lint
 cd web && pnpm test                # Vitest unit tests
 cd web && pnpm build               # Production build
-cd web && pnpm release             # Build SPA into server/router/frontend/dist
+cd web && pnpm release             # Build SPA into server/router/frontend/dist (required before Docker build)
 
 # Protocol Buffers
 cd proto && buf generate           # Regenerate Go + TypeScript + OpenAPI
@@ -63,7 +64,9 @@ cd proto && buf format -w          # Format proto files
 | `server/router/fileserver/` | Native HTTP file serving, thumbnails, range requests |
 | `server/runner/` | Background memo processing and S3 presign refresh |
 | `store/` | Store facade, cache, migrations, driver interface |
-| `store/db/{sqlite,mysql,postgres}/` | Database-specific drivers and SQL |
+| `store/db/{sqlite,mysql,postgres}/` | Database-specific driver implementations |
+| `store/migration/{sqlite,mysql,postgres}/` | SQL migrations (versioned subdirs) + `LATEST.sql` per driver |
+| `store/test/` | TestContainers-backed integration/migration tests (require Docker) |
 | `proto/api/v1/` | Public API service definitions |
 | `proto/store/` | Internal storage proto messages |
 | `internal/` | App-private packages: scheduler, cron, email, CEL filter, markdown, idp, S3 |
@@ -73,6 +76,7 @@ cd proto && buf format -w          # Format proto files
 | `web/src/contexts/` | React context for client/UI state |
 | `web/src/components/` | Radix/Tailwind UI components and feature components |
 | `web/src/themes/` | CSS themes using OKLch color tokens |
+| `.opencode/skills/memos-api-endpoint/` | Skill: full-stack API endpoint workflow (proto -> backend -> frontend) |
 
 ## Change Routing
 
@@ -105,10 +109,10 @@ cd proto && buf format -w          # Format proto files
 
 ## Database And Proto Rules
 
-- Schema changes require SQLite, MySQL, and PostgreSQL migrations plus `LATEST.sql` updates.
 - Fresh-install SQL and incremental migrations must stay equivalent.
 - Proto field changes must preserve compatibility unless the task explicitly allows a breaking API change.
 - Regenerate after proto edits and include both Go/OpenAPI and TypeScript generated outputs.
+- Migration tests in `store/test/` use TestContainers and are skipped under `-race`.
 
 ## Verification Policy
 
@@ -122,4 +126,4 @@ cd proto && buf format -w          # Format proto files
 - Backend CI: Go 1.26.2, `go mod tidy -go=1.26.2`, golangci-lint v2.11.3, test groups `store`, `server`, `internal`, `other`.
 - Frontend CI: Node 24, pnpm 11.0.1, `pnpm lint`, `pnpm test`, `pnpm build`.
 - Proto CI: `buf lint` and `buf format` check.
-- Docker: `scripts/Dockerfile`, Alpine 3.21 runtime, non-root user, port 5230, multi-arch amd64/arm64/arm/v7.
+- Docker: `scripts/Dockerfile`, Alpine 3.21 runtime, non-root user, port 5230, multi-arch amd64/arm64/arm/v7. The Dockerfile does not build the frontend: run `pnpm release` first (CI uploads `server/router/frontend/dist` as an artifact).

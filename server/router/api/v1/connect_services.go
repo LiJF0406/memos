@@ -598,3 +598,103 @@ func (s *ConnectServiceHandler) DeleteIdentityProvider(ctx context.Context, req 
 	}
 	return connect.NewResponse(resp), nil
 }
+
+// NoteService
+
+func (s *ConnectServiceHandler) CreateNote(ctx context.Context, req *connect.Request[v1pb.CreateNoteRequest]) (*connect.Response[v1pb.Note], error) {
+	resp, err := s.APIV1Service.CreateNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ListNotes(ctx context.Context, req *connect.Request[v1pb.ListNotesRequest]) (*connect.Response[v1pb.ListNotesResponse], error) {
+	resp, err := s.APIV1Service.ListNotes(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) GetNote(ctx context.Context, req *connect.Request[v1pb.GetNoteRequest]) (*connect.Response[v1pb.Note], error) {
+	resp, err := s.APIV1Service.GetNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) UpdateNote(ctx context.Context, req *connect.Request[v1pb.UpdateNoteRequest]) (*connect.Response[v1pb.Note], error) {
+	resp, err := s.APIV1Service.UpdateNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) DeleteNote(ctx context.Context, req *connect.Request[v1pb.DeleteNoteRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.DeleteNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ListNoteLinks(ctx context.Context, req *connect.Request[v1pb.ListNoteLinksRequest]) (*connect.Response[v1pb.ListNoteLinksResponse], error) {
+	resp, err := s.APIV1Service.ListNoteLinks(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ExportNote(ctx context.Context, req *connect.Request[v1pb.ExportNoteRequest]) (*connect.Response[v1pb.ExportNoteResponse], error) {
+	resp, err := s.APIV1Service.ExportNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ImportNote(ctx context.Context, req *connect.Request[v1pb.ImportNoteRequest]) (*connect.Response[v1pb.Note], error) {
+	resp, err := s.APIV1Service.ImportNote(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+// NoteFolderService
+
+func (s *ConnectServiceHandler) CreateNoteFolder(ctx context.Context, req *connect.Request[v1pb.CreateNoteFolderRequest]) (*connect.Response[v1pb.NoteFolder], error) {
+	resp, err := s.APIV1Service.CreateNoteFolder(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) ListNoteFolders(ctx context.Context, req *connect.Request[v1pb.ListNoteFoldersRequest]) (*connect.Response[v1pb.ListNoteFoldersResponse], error) {
+	resp, err := s.APIV1Service.ListNoteFolders(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) UpdateNoteFolder(ctx context.Context, req *connect.Request[v1pb.UpdateNoteFolderRequest]) (*connect.Response[v1pb.NoteFolder], error) {
+	resp, err := s.APIV1Service.UpdateNoteFolder(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (s *ConnectServiceHandler) DeleteNoteFolder(ctx context.Context, req *connect.Request[v1pb.DeleteNoteFolderRequest]) (*connect.Response[emptypb.Empty], error) {
+	resp, err := s.APIV1Service.DeleteNoteFolder(ctx, req.Msg)
+	if err != nil {
+		return nil, convertGRPCError(err)
+	}
+	return connect.NewResponse(resp), nil
+}

@@ -12,6 +12,12 @@ export interface MentionNode {
   data: MentionNodeData;
 }
 
+export interface WikiLinkNode {
+  type: "wikiLinkNode";
+  value: string;
+  data: WikiLinkNodeData;
+}
+
 export interface TagNodeData {
   hName: "span";
   hProperties: TagNodeProperties;
@@ -24,6 +30,12 @@ export interface MentionNodeData {
   hChildren: Array<{ type: "text"; value: string }>;
 }
 
+export interface WikiLinkNodeData {
+  hName: "span";
+  hProperties: WikiLinkNodeProperties;
+  hChildren: Array<{ type: "text"; value: string }>;
+}
+
 export interface TagNodeProperties {
   className: string;
   "data-tag": string;
@@ -32,6 +44,11 @@ export interface TagNodeProperties {
 export interface MentionNodeProperties {
   className: string;
   "data-mention": string;
+}
+
+export interface WikiLinkNodeProperties {
+  className: string;
+  "data-wikilink": string;
 }
 
 export interface ExtendedData extends Data {
@@ -78,6 +95,27 @@ export function isMentionElement(node: HastElement): boolean {
     return true;
   }
   if (typeof className === "string" && className.split(/\s+/).includes("mention")) {
+    return true;
+  }
+
+  return false;
+}
+
+export function isWikiLinkElement(node: HastElement): boolean {
+  if (hasExtendedData(node) && node.data.mdastType === "wikiLinkNode") {
+    return true;
+  }
+
+  const dataWikiLink = node.properties?.["data-wikilink"];
+  if (typeof dataWikiLink === "string" && dataWikiLink !== "") {
+    return true;
+  }
+
+  const className = node.properties?.className;
+  if (Array.isArray(className) && className.includes("wikilink")) {
+    return true;
+  }
+  if (typeof className === "string" && className.split(/\s+/).includes("wikilink")) {
     return true;
   }
 

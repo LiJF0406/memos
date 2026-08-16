@@ -19,9 +19,10 @@ import (
 
 // ExtractedData contains all metadata extracted from markdown in a single pass.
 type ExtractedData struct {
-	Tags     []string
-	Mentions []string
-	Property *storepb.MemoPayload_Property
+	Tags      []string
+	Mentions  []string
+	WikiLinks []string
+	Property  *storepb.MemoPayload_Property
 }
 
 // Service handles markdown metadata extraction.
@@ -63,8 +64,9 @@ type service struct {
 type Option func(*config)
 
 type config struct {
-	enableTags     bool
-	enableMentions bool
+	enableTags      bool
+	enableMentions  bool
+	enableWikiLinks bool
 }
 
 // WithTagExtension enables #tag parsing.
@@ -78,6 +80,13 @@ func WithTagExtension() Option {
 func WithMentionExtension() Option {
 	return func(c *config) {
 		c.enableMentions = true
+	}
+}
+
+// WithWikiLinkExtension enables [[...]] wiki link parsing.
+func WithWikiLinkExtension() Option {
+	return func(c *config) {
+		c.enableWikiLinks = true
 	}
 }
 
@@ -98,6 +107,9 @@ func NewService(opts ...Option) Service {
 	}
 	if cfg.enableMentions {
 		exts = append(exts, extensions.MentionExtension)
+	}
+	if cfg.enableWikiLinks {
+		exts = append(exts, extensions.WikiLinkExtension)
 	}
 
 	md := goldmark.New(
@@ -318,6 +330,10 @@ func (s *service) GenerateSnippet(content []byte, maxLength int) (string, error)
 		case *mast.TagNode:
 			buf.WriteByte('#')
 			buf.Write(node.Tag)
+		case *mast.WikiLinkNode:
+			buf.WriteString("[[")
+			buf.Write(node.Title)
+			buf.WriteString("]]")
 		default:
 			// Ignore other node types.
 		}
@@ -360,9 +376,10 @@ func (s *service) ExtractAll(content []byte) (*ExtractedData, error) {
 	}
 
 	data := &ExtractedData{
-		Tags:     []string{},
-		Mentions: []string{},
-		Property: &storepb.MemoPayload_Property{},
+		Tags:      []string{},
+		Mentions:  []string{},
+		WikiLinks: []string{},
+		Property:  &storepb.MemoPayload_Property{},
 	}
 
 	firstBlockChecked := false
@@ -378,6 +395,9 @@ func (s *service) ExtractAll(content []byte) (*ExtractedData, error) {
 		}
 		if mentionNode, ok := n.(*mast.MentionNode); ok {
 			data.Mentions = append(data.Mentions, strings.ToLower(string(mentionNode.Username)))
+		}
+		if wikiLinkNode, ok := n.(*mast.WikiLinkNode); ok {
+			data.WikiLinks = append(data.WikiLinks, string(wikiLinkNode.Title))
 		}
 
 		// Check if the first block-level child of the document is an H1 heading.
@@ -417,6 +437,7 @@ func (s *service) ExtractAll(content []byte) (*ExtractedData, error) {
 	// Deduplicate tags while preserving original case
 	data.Tags = uniquePreserveCase(data.Tags)
 	data.Mentions = uniquePreserveCase(data.Mentions)
+	data.WikiLinks = uniquePreserveCase(data.WikiLinks)
 
 	return data, nil
 }

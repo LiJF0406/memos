@@ -1,0 +1,107 @@
+classDiagram
+    class Note {
+        +int32 ID
+        +string UID
+        +int32 CreatorID
+        +int32 FolderID
+        +string Title
+        +string Content
+        +RowStatus RowStatus
+        +int64 CreatedTs
+        +int64 UpdatedTs
+    }
+    class NoteFolder {
+        +int32 ID
+        +string UID
+        +int32 CreatorID
+        +int32 ParentID
+        +string Name
+        +bool Shared
+        +RowStatus RowStatus
+        +int64 CreatedTs
+        +int64 UpdatedTs
+    }
+    class NoteLink {
+        +int32 NoteID
+        +string TargetType
+        +int32 TargetID
+        +string TargetTitle
+    }
+    class NoteTag {
+        +int32 NoteID
+        +string Tag
+    }
+    class Driver {
+        <<interface>>
+        CreateNote(ctx, *Note) (*Note, error)
+        ListNotes(ctx, *FindNote) ([]*Note, error)
+        UpdateNote(ctx, *UpdateNote) error
+        DeleteNote(ctx, *DeleteNote) error
+        CreateNoteFolder(ctx, *NoteFolder) (*NoteFolder, error)
+        ListNoteFolders(ctx, *FindNoteFolder) ([]*NoteFolder, error)
+        UpdateNoteFolder(ctx, *UpdateNoteFolder) error
+        DeleteNoteFolder(ctx, *DeleteNoteFolder) error
+        UpsertNoteLink(ctx, *NoteLink) error
+        DeleteNoteLinks(ctx, *DeleteNoteLink) error
+        ListNoteLinks(ctx, *FindNoteLink) ([]*NoteLink, error)
+        UpsertNoteTag(ctx, *NoteTag) error
+        DeleteNoteTags(ctx, *DeleteNoteTag) error
+        ListNoteTags(ctx, *FindNoteTag) ([]*NoteTag, error)
+    }
+    class Store {
+        +Driver driver
+        +CreateNote(ctx, *Note) (*Note, error)
+        +ListNotes(ctx, *FindNote) ([]*Note, error)
+        +GetNote(ctx, *FindNote) (*Note, error)
+        +UpdateNote(ctx, *UpdateNote) error
+        +DeleteNote(ctx, *DeleteNote) error
+        +ListAccessibleNoteFolderIDs(ctx, userID) ([]int32, error)
+        +SetNoteRelations(ctx, noteID, links, tags) error
+    }
+    class MarkdownService {
+        <<interface>>
+        ExtractAll(content []byte) (*ExtractedData, error)
+        ExtractTags(content []byte) ([]string, error)
+    }
+    class ExtractedData {
+        +Tags []string
+        +Mentions []string
+        +WikiLinks []string
+        +Property MemoPayload_Property
+    }
+    class APIV1Service {
+        +Store Store
+        +MarkdownService markdownService
+        +CreateNote(ctx, req) (*Note, error)
+        +ListNotes(ctx, req) (*ListNotesResponse, error)
+        +GetNote(ctx, req) (*Note, error)
+        +UpdateNote(ctx, req) (*Note, error)
+        +DeleteNote(ctx, req) (*Empty, error)
+        +ListNoteLinks(ctx, req) (*ListNoteLinksResponse, error)
+        +ImportNote(ctx, req) (*Note, error)
+        +ExportNote(ctx, req) (*ExportNoteResponse, error)
+        +CreateNoteFolder(ctx, req) (*NoteFolder, error)
+        +ListNoteFolders(ctx, req) (*ListNoteFoldersResponse, error)
+        +UpdateNoteFolder(ctx, req) (*NoteFolder, error)
+        +DeleteNoteFolder(ctx, req) (*Empty, error)
+        -checkNoteAccess(ctx, note, chain) error
+        -checkNoteFolderAccess(ctx, folder) error
+        -resolveNoteLinkTargets(ctx, wikilinks) ([]*store.NoteLink, error)
+    }
+    class ConnectServiceHandler {
+        +APIV1Service svc
+    }
+
+    Note "1" --> "0..1" NoteFolder : folder_id
+    NoteFolder "1" --> "0..1" NoteFolder : parent_id
+    Note "1" --> "*" NoteLink : 双链
+    Note "1" --> "*" NoteTag : 标签
+    Store ..> Driver : delegates
+    Store ..> Note : manages
+    Store ..> NoteFolder : manages
+    Store ..> NoteLink : manages
+    Store ..> NoteTag : manages
+    APIV1Service ..> Store : uses
+    APIV1Service ..> MarkdownService : parses
+    MarkdownService ..> ExtractedData : returns
+    ConnectServiceHandler --> APIV1Service : delegates

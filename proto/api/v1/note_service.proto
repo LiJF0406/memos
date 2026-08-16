@@ -1,0 +1,363 @@
+syntax = "proto3";
+
+package memos.api.v1;
+
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "gen/api/v1";
+
+// NoteService provides CRUD operations for notes.
+service NoteService {
+  // CreateNote creates a note.
+  rpc CreateNote(CreateNoteRequest) returns (Note) {
+    option (google.api.http) = {
+      post: "/api/v1/notes"
+      body: "note"
+    };
+    option (google.api.method_signature) = "note";
+  }
+  // ListNotes lists notes with pagination and filter.
+  rpc ListNotes(ListNotesRequest) returns (ListNotesResponse) {
+    option (google.api.http) = {get: "/api/v1/notes"};
+    option (google.api.method_signature) = "";
+  }
+  // GetNote gets a note.
+  rpc GetNote(GetNoteRequest) returns (Note) {
+    option (google.api.http) = {get: "/api/v1/{name=notes/*}"};
+    option (google.api.method_signature) = "name";
+  }
+  // UpdateNote updates a note.
+  rpc UpdateNote(UpdateNoteRequest) returns (Note) {
+    option (google.api.http) = {
+      patch: "/api/v1/{note.name=notes/*}"
+      body: "note"
+    };
+    option (google.api.method_signature) = "note,update_mask";
+  }
+  // DeleteNote deletes a note.
+  rpc DeleteNote(DeleteNoteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/api/v1/{name=notes/*}"};
+    option (google.api.method_signature) = "name";
+  }
+  // ListNoteLinks lists outgoing links and backlinks for a note.
+  rpc ListNoteLinks(ListNoteLinksRequest) returns (ListNoteLinksResponse) {
+    option (google.api.http) = {get: "/api/v1/{name=notes/*}/links"};
+    option (google.api.method_signature) = "name";
+  }
+  // ExportNote exports a note as Markdown.
+  rpc ExportNote(ExportNoteRequest) returns (ExportNoteResponse) {
+    option (google.api.http) = {get: "/api/v1/{name=notes/*}:export"};
+    option (google.api.method_signature) = "name";
+  }
+  // ImportNote imports Markdown text as a note.
+  rpc ImportNote(ImportNoteRequest) returns (Note) {
+    option (google.api.http) = {
+      post: "/api/v1/notes:import"
+      body: "*"
+    };
+  }
+}
+
+// NoteFolderService provides CRUD operations for note folders.
+service NoteFolderService {
+  // CreateNoteFolder creates a note folder.
+  rpc CreateNoteFolder(CreateNoteFolderRequest) returns (NoteFolder) {
+    option (google.api.http) = {
+      post: "/api/v1/note_folders"
+      body: "note_folder"
+    };
+    option (google.api.method_signature) = "note_folder";
+  }
+  // ListNoteFolders lists note folders.
+  rpc ListNoteFolders(ListNoteFoldersRequest) returns (ListNoteFoldersResponse) {
+    option (google.api.http) = {get: "/api/v1/note_folders"};
+    option (google.api.method_signature) = "";
+  }
+  // UpdateNoteFolder updates a note folder.
+  rpc UpdateNoteFolder(UpdateNoteFolderRequest) returns (NoteFolder) {
+    option (google.api.http) = {
+      patch: "/api/v1/{note_folder.name=note_folders/*}"
+      body: "note_folder"
+    };
+    option (google.api.method_signature) = "note_folder,update_mask";
+  }
+  // DeleteNoteFolder deletes a note folder and everything under it.
+  rpc DeleteNoteFolder(DeleteNoteFolderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/api/v1/{name=note_folders/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// NoteLinkTargetType enumerates the possible targets of a wiki link.
+enum NoteLinkTargetType {
+  NOTE_LINK_TARGET_TYPE_UNSPECIFIED = 0;
+  NOTE = 1;
+  MEMO = 2;
+  UNRESOLVED = 3;
+}
+
+// NoteLink represents a wiki link ([[...]]) relationship for a note.
+message NoteLink {
+  // The type of the link target.
+  NoteLinkTargetType target_type = 1;
+
+  // Output only. The resource name of the target, if resolved.
+  // Format: notes/{note} or memos/{memo}. Empty for unresolved links.
+  string target = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The original title from the [[...]] link.
+  string title = 3;
+}
+
+// Note is a long-form markdown document, independent from Memo.
+message Note {
+  option (google.api.resource) = {
+    type: "memos.api.v1/Note"
+    pattern: "notes/{note}"
+    name_field: "name"
+    singular: "note"
+    plural: "notes"
+  };
+
+  // The resource name of the note.
+  // Format: notes/{note}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Output only. The resource name of the creator.
+  // Format: users/{user}
+  string creator = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "memos.api.v1/User"}
+  ];
+
+  // Output only. The creation timestamp.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The last update timestamp.
+  google.protobuf.Timestamp update_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Required. The title of the note.
+  string title = 5 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The content of the note in Markdown format.
+  string content = 6 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. The resource name of the folder the note belongs to.
+  // Format: note_folders/{note_folder}
+  optional string folder = 7 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "memos.api.v1/NoteFolder"}
+  ];
+
+  // Output only. The tags extracted from the content.
+  repeated string tags = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The outgoing links of the note.
+  repeated NoteLink links = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The backlinks referencing this note.
+  repeated NoteLink backlinks = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. Whether the note lives in a shared workspace.
+  bool shared = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// NoteFolder is a folder for organizing notes. Folders may be nested and shared.
+message NoteFolder {
+  option (google.api.resource) = {
+    type: "memos.api.v1/NoteFolder"
+    pattern: "note_folders/{note_folder}"
+    name_field: "name"
+    singular: "note_folder"
+    plural: "note_folders"
+  };
+
+  // The resource name of the note folder.
+  // Format: note_folders/{note_folder}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Output only. The resource name of the creator.
+  // Format: users/{user}
+  string creator = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "memos.api.v1/User"}
+  ];
+
+  // Output only. The creation timestamp.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The last update timestamp.
+  google.protobuf.Timestamp update_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Optional. The resource name of the parent folder.
+  // Format: note_folders/{note_folder}
+  optional string parent = 5 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "memos.api.v1/NoteFolder"}
+  ];
+
+  // Required. The title of the folder.
+  string title = 6 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. Whether this folder is a shared workspace.
+  bool shared = 7 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateNoteRequest {
+  // Required. The note to create.
+  Note note = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. The note ID to use for this note.
+  // If empty, a unique ID will be generated.
+  string note_id = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListNotesRequest {
+  // Optional. The maximum number of notes to return.
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A page token, received from a previous `ListNotes` call.
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Filter by folder resource name.
+  // Format: note_folders/{note_folder}
+  string folder = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Fuzzy search on the note title.
+  string title_search = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. Filter by tag.
+  string tag = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. The order to sort results by.
+  // Default to "create_time desc". Supports "update_time desc" and "update_time asc".
+  string order_by = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListNotesResponse {
+  // The list of notes.
+  repeated Note notes = 1;
+
+  // A token that can be sent as `page_token` to retrieve the next page.
+  string next_page_token = 2;
+}
+
+message GetNoteRequest {
+  // Required. The resource name of the note.
+  // Format: notes/{note}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "memos.api.v1/Note"}
+  ];
+}
+
+message UpdateNoteRequest {
+  // Required. The note to update.
+  // The `name` field is required.
+  Note note = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteNoteRequest {
+  // Required. The resource name of the note to delete.
+  // Format: notes/{note}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "memos.api.v1/Note"}
+  ];
+}
+
+message ListNoteLinksRequest {
+  // Required. The resource name of the note.
+  // Format: notes/{note}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "memos.api.v1/Note"}
+  ];
+}
+
+message ListNoteLinksResponse {
+  // The outgoing links of the note.
+  repeated NoteLink links = 1;
+
+  // The backlinks referencing the note.
+  repeated NoteLink backlinks = 2;
+}
+
+message ExportNoteRequest {
+  // Required. The resource name of the note.
+  // Format: notes/{note}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "memos.api.v1/Note"}
+  ];
+}
+
+message ExportNoteResponse {
+  // The title of the note.
+  string title = 1;
+
+  // The Markdown content of the note.
+  string content = 2;
+}
+
+message ImportNoteRequest {
+  // Required. The title of the note.
+  string title = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The Markdown content of the note.
+  string content = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. The resource name of the folder to import into.
+  // Format: note_folders/{note_folder}
+  optional string folder = 3 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "memos.api.v1/NoteFolder"}
+  ];
+}
+
+message CreateNoteFolderRequest {
+  // Required. The note folder to create.
+  NoteFolder note_folder = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional. The note folder ID to use for this folder.
+  // If empty, a unique ID will be generated.
+  string note_folder_id = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListNoteFoldersRequest {
+  // Optional. Filter by parent folder resource name.
+  // Format: note_folders/{note_folder}
+  string parent = 1 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListNoteFoldersResponse {
+  // The list of note folders.
+  repeated NoteFolder note_folders = 1;
+}
+
+message UpdateNoteFolderRequest {
+  // Required. The note folder to update.
+  // The `name` field is required.
+  NoteFolder note_folder = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The list of fields to update.
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteNoteFolderRequest {
+  // Required. The resource name of the note folder to delete.
+  // Format: note_folders/{note_folder}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "memos.api.v1/NoteFolder"}
+  ];
+}
