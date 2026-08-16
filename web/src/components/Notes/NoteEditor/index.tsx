@@ -20,7 +20,9 @@ import { getAttachmentUrl } from "@/utils/attachment";
 import { useTranslate } from "@/utils/i18n";
 import { remarkWikiLink } from "@/utils/remark-plugins/remark-wikilink";
 import { type ResolvedWikiLink, WikiLink, WikiLinkResolutionContext } from "../WikiLink";
+import { Image } from "./Image";
 import { LivePreview } from "./LivePreview";
+import { MarkdownInputRules } from "./MarkdownInputRules";
 import { WikiLink as WikiLinkMark } from "./WikiLink";
 import { WikiLinkSuggestion, type WikiLinkSuggestionItem } from "./WikiLinkSuggestion";
 
@@ -124,6 +126,8 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
     () => [
       ...buildExtensions(),
       WikiLinkMark,
+      Image,
+      MarkdownInputRules,
       Placeholder.configure({ placeholder: () => placeholderRef.current }),
       WikiLinkSuggestion.configure({ getItems: () => suggestionItemsRef.current }),
       LivePreview,
