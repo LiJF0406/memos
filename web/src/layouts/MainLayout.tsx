@@ -27,6 +27,7 @@ const MainLayout = () => {
   const context: MemoExplorerContext = useMemo(() => {
     if (location.pathname === Routes.HOME) return "home";
     if (location.pathname === Routes.EXPLORE) return "explore";
+    if (location.pathname === Routes.NOTES) return "notes";
     if (matchPath(ARCHIVED_ROUTE, location.pathname)) return "archived";
     if (matchPath(PROFILE_ROUTE, location.pathname)) return "profile";
     return "home"; // fallback

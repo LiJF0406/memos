@@ -3,16 +3,18 @@ import useCurrentUser from "@/hooks/useCurrentUser";
 import { cn } from "@/lib/utils";
 import type { StatisticsData } from "@/types/statistics";
 import StatisticsView from "../StatisticsView";
+import NotesSection from "./NotesSection";
 import ShortcutsSection from "./ShortcutsSection";
 import TagsSection from "./TagsSection";
 
-export type MemoExplorerContext = "home" | "explore" | "archived" | "profile";
+export type MemoExplorerContext = "home" | "explore" | "archived" | "profile" | "notes";
 
 export interface MemoExplorerFeatures {
   search?: boolean;
   statistics?: boolean;
   shortcuts?: boolean;
   tags?: boolean;
+  notes?: boolean;
 }
 
 interface Props {
@@ -46,6 +48,14 @@ const getDefaultFeatures = (context: MemoExplorerContext): MemoExplorerFeatures 
         shortcuts: false, // Profile view doesn't use shortcuts
         tags: true,
       };
+    case "notes":
+      return {
+        search: true,
+        statistics: true,
+        shortcuts: false, // Notes page doesn't use shortcuts
+        tags: true,
+        notes: true,
+      };
     case "home":
     default:
       return {
@@ -77,6 +87,7 @@ const MemoExplorer = (props: Props) => {
       {features.search && <SearchBar />}
       <div className="mt-1 px-1 w-full">
         {features.statistics && <StatisticsView statisticsData={statisticsData} />}
+        {features.notes && <NotesSection />}
         {features.shortcuts && currentUser && <ShortcutsSection />}
         {features.tags && <TagsSection readonly={context === "explore"} tagCount={tagCount} />}
       </div>
