@@ -7,7 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { CodeBlock } from "@/components/MemoContent/CodeBlock";
+import { MarkdownRenderContext, rootMarkdownRenderContext } from "@/components/MemoContent/MarkdownRenderContext";
+import { buildMemoMarkdownComponents } from "@/components/MemoContent/MemoMarkdownRenderer";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { uploadService } from "@/components/MemoEditor/services/uploadService";
 import { useExportNote, useNoteLinks, useNotes, useUpdateNote } from "@/hooks";
@@ -47,7 +48,13 @@ function NotePreview({ content, links }: { content: string; links: NoteLink[] })
     return (title: string) => map.get(title);
   }, [links]);
 
+  // Reuse the memo renderer's styled elements (headings, blockquotes, lists,
+  // tables, ...) so the preview keeps markdown formatting, with a custom span
+  // for [[wiki links]]. Task list checkboxes render read-only (notes have no
+  // toggle interaction like memos).
   const components: Components = {
+    ...buildMemoMarkdownComponents(new Set()),
+    input: ({ node: _node, ...props }) => <input {...props} disabled />,
     span: ({ node, ...props }) => {
       if (node && isWikiLinkElement(node)) {
         const title = (node.properties?.["data-wikilink"] as string | undefined) ?? "";
@@ -55,17 +62,18 @@ function NotePreview({ content, links }: { content: string; links: NoteLink[] })
       }
       return <span {...props} />;
     },
-    pre: CodeBlock,
   };
 
   return (
-    <WikiLinkResolutionContext.Provider value={resolve}>
-      <div className="note-preview w-full text-base break-words">
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkWikiLink]} components={components}>
-          {content}
-        </ReactMarkdown>
-      </div>
-    </WikiLinkResolutionContext.Provider>
+    <MarkdownRenderContext.Provider value={rootMarkdownRenderContext}>
+      <WikiLinkResolutionContext.Provider value={resolve}>
+        <div className="note-preview w-full text-base break-words">
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkWikiLink]} components={components}>
+            {content}
+          </ReactMarkdown>
+        </div>
+      </WikiLinkResolutionContext.Provider>
+    </MarkdownRenderContext.Provider>
   );
 }
 

@@ -46,8 +46,11 @@ function getMentionUsername(node: Element, children?: React.ReactNode): string {
   return "";
 }
 
-export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: MemoMarkdownRendererProps) => {
-  const markdownComponents: Components = {
+// Shared component mapping factory for read-only markdown rendering. Exported
+// so other renderers (e.g. the notes preview) can reuse the same styled
+// elements with their own mention resolution set.
+export function buildMemoMarkdownComponents(resolvedMentionUsernames: Set<string>): Components {
+  return {
     input: ({ node, ...inputProps }) => {
       if (node && isTaskListItemElement(node)) {
         return <TaskListItem {...inputProps} node={node} />;
@@ -116,7 +119,9 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: Memo
     th: ({ children, ...props }) => <TableHeaderCell {...props}>{children}</TableHeaderCell>,
     td: ({ children, ...props }) => <TableCell {...props}>{children}</TableCell>,
   };
+}
 
+export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: MemoMarkdownRendererProps) => {
   return (
     <MarkdownRenderContext.Provider value={rootMarkdownRenderContext}>
       <ReactMarkdown
@@ -130,7 +135,7 @@ export const MemoMarkdownRenderer = ({ content, resolvedMentionUsernames }: Memo
           remarkPreserveType,
         ]}
         rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeHeadingId]}
-        components={markdownComponents}
+        components={buildMemoMarkdownComponents(resolvedMentionUsernames)}
       >
         {content}
       </ReactMarkdown>
