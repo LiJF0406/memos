@@ -12,6 +12,7 @@ import { Routes } from "@/router";
 
 const ARCHIVED_ROUTE = "/archived";
 const PROFILE_ROUTE = "/u/:username";
+const NOTES_DETAIL_ROUTE = "/notes/:noteId";
 const DESKTOP_EXPLORER_WIDTH_CLASS = "w-64";
 const DESKTOP_EXPLORER_CLASS_NAME = cn("sticky top-0 h-svh shrink-0 border-r border-border transition-all", DESKTOP_EXPLORER_WIDTH_CLASS);
 const MAIN_CONTENT_CLASS_NAME = "w-full min-h-full min-w-0 flex-1";
@@ -27,7 +28,7 @@ const MainLayout = () => {
   const context: MemoExplorerContext = useMemo(() => {
     if (location.pathname === Routes.HOME) return "home";
     if (location.pathname === Routes.EXPLORE) return "explore";
-    if (location.pathname === Routes.NOTES) return "notes";
+    if (location.pathname === Routes.NOTES || matchPath(NOTES_DETAIL_ROUTE, location.pathname)) return "notes";
     if (matchPath(ARCHIVED_ROUTE, location.pathname)) return "archived";
     if (matchPath(PROFILE_ROUTE, location.pathname)) return "profile";
     return "home"; // fallback
