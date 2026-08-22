@@ -80,8 +80,8 @@ export const tableStyles = {
   thead: "border-b border-border bg-muted/30",
   tbody: "divide-y divide-border",
   row: "transition-colors hover:bg-accent/20",
-  headerCell: "px-2 py-1 text-left align-middle text-sm font-medium text-muted-foreground",
-  cell: "px-2 py-1 text-left align-middle text-sm",
+  headerCell: "px-2 py-1 text-left align-middle text-sm font-medium text-muted-foreground border border-border",
+  cell: "px-2 py-1 text-left align-middle text-sm border border-border",
 } as const;
 
 /** Complete heading class for a given level (shared base + per-level classes). */
