@@ -64,14 +64,12 @@ const BubbleToolbar = ({ editor }: BubbleToolbarProps) => {
       updateDelay={100}
       // 自定义 shouldShow 会完全替换官方默认逻辑，因此复刻其条件
       // （聚焦 + 可编辑 + 非空选区 + 选区内有实际文本）并追加排除项。
+      // 注意：只有真正选中了文本才显示 —— 光标停在表格/内容上（空选区）
+      // 一律不弹，避免打字或点击时干扰输入；表格管理已拆到右键菜单。
       shouldShow={({ editor: ed, state, view, from, to }) => {
         const { selection } = state;
         if (!view.hasFocus() || !ed.isEditable) {
           return false;
-        }
-        // 表格内编辑允许空选区（光标停在单元格里即可）。
-        if (ed.isActive("table")) {
-          return true;
         }
         if (selection.empty) {
           return false;

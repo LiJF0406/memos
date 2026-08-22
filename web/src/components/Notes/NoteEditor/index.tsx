@@ -14,6 +14,7 @@ import { AutoPairing } from "@/components/MemoEditor/Editor/AutoPairing";
 import BubbleToolbar from "@/components/MemoEditor/Editor/BubbleToolbar";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { SlashCommand } from "@/components/MemoEditor/Editor/SlashCommand";
+import TableContextMenu from "@/components/MemoEditor/Editor/TableContextMenu";
 import { TagSuggestion } from "@/components/MemoEditor/Editor/TagSuggestion";
 import { uploadService } from "@/components/MemoEditor/services/uploadService";
 import { useExportNote, useNoteLinks, useNotes, useUpdateNote } from "@/hooks";
@@ -292,6 +293,8 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
           <EditorContent editor={editor} />
           {/* 选中文本时浮动显示标题/加粗/斜体工具栏 */}
           {editor && <BubbleToolbar editor={editor} />}
+          {/* 表格内右键管理增删行列/删除表格（打字时不干扰输入） */}
+          {editor && <TableContextMenu editor={editor} />}
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ import { AutoPairing } from "./AutoPairing";
 import BubbleToolbar from "./BubbleToolbar";
 import { buildExtensions } from "./extensions";
 import { SlashCommand } from "./SlashCommand";
+import TableContextMenu from "./TableContextMenu";
 import { TagSuggestion } from "./TagSuggestion";
 
 // Mod-Enter is the app-wide "save memo" shortcut (useKeyboard). StarterKit's
@@ -269,6 +270,8 @@ const Editor = forwardRef<EditorController, EditorProps>(function Editor(props, 
       <RichTextContent editor={editor} className="w-full" />
       {/* 选中文本时浮动显示：标题级别/正文切换 + 加粗/斜体 */}
       {editor && <BubbleToolbar editor={editor} />}
+      {/* 表格内右键管理增删行列/删除表格（打字时不干扰输入） */}
+      {editor && <TableContextMenu editor={editor} />}
     </div>
   );
 });
