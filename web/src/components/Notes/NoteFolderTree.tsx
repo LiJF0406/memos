@@ -91,7 +91,7 @@ const NoteFolderTree = ({
       <span className="ml-auto hidden group-hover:flex items-center gap-0.5">
         <button
           type="button"
-          className="p-1 rounded hover:bg-background/60"
+          className="p-0.5 rounded hover:bg-background/60"
           title={t("note.new-folder")}
           onClick={(event) => {
             event.stopPropagation();
@@ -102,7 +102,7 @@ const NoteFolderTree = ({
         </button>
         <button
           type="button"
-          className="p-1 rounded hover:bg-background/60"
+          className="p-0.5 rounded hover:bg-background/60"
           title={t("note.rename")}
           onClick={(event) => {
             event.stopPropagation();
@@ -113,7 +113,7 @@ const NoteFolderTree = ({
         </button>
         <button
           type="button"
-          className="p-1 rounded hover:bg-background/60"
+          className="p-0.5 rounded hover:bg-background/60"
           title={t("note.delete")}
           onClick={(event) => {
             event.stopPropagation();
@@ -203,7 +203,7 @@ const NoteFolderTree = ({
             <span className="ml-auto hidden group-hover:flex items-center gap-0.5">
               <button
                 type="button"
-                className="p-1 rounded hover:bg-background/60"
+                className="p-0.5 rounded hover:bg-background/60"
                 title={t("note.new-folder")}
                 onClick={(event) => {
                   event.stopPropagation();
