@@ -100,6 +100,21 @@ func TestNoteFolderStore(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// An unrelated sibling folder that must NOT be touched by the cascade.
+	sibling, err := ts.CreateNoteFolder(ctx, &store.NoteFolder{
+		UID:       "folder-test-3",
+		CreatorID: user.ID,
+		Name:      "Sibling",
+	})
+	require.NoError(t, err)
+	noteInSibling, err := ts.CreateNote(ctx, &store.Note{
+		UID:       "note-folder-3",
+		CreatorID: user.ID,
+		Title:     "In Sibling",
+		FolderID:  &sibling.ID,
+	})
+	require.NoError(t, err)
+
 	// Deleting the parent cascades to the child folder and both notes.
 	err = ts.DeleteNoteFolder(ctx, &store.DeleteNoteFolder{ID: parent.ID})
 	require.NoError(t, err)
@@ -116,6 +131,14 @@ func TestNoteFolderStore(t *testing.T) {
 	folderList, err := ts.ListNoteFolders(ctx, &store.FindNoteFolder{IDList: []int32{parent.ID, child.ID}})
 	require.NoError(t, err)
 	require.Len(t, folderList, 0)
+
+	// The unrelated sibling folder and its note must survive.
+	siblingList, err := ts.ListNoteFolders(ctx, &store.FindNoteFolder{IDList: []int32{sibling.ID}})
+	require.NoError(t, err)
+	require.Len(t, siblingList, 1)
+	gotSiblingNote, err := ts.GetNote(ctx, &store.FindNote{ID: &noteInSibling.ID})
+	require.NoError(t, err)
+	require.NotNil(t, gotSiblingNote)
 }
 
 func TestNoteRelations(t *testing.T) {

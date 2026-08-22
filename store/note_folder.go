@@ -121,7 +121,7 @@ func (s *Store) collectNoteFolderDescendantIDs(ctx context.Context, folderID int
 	for len(queue) > 0 {
 		parentID := queue[0]
 		queue = queue[1:]
-		children, err := s.ListNoteFolders(ctx, &FindNoteFolder{ParentID: &parentID})
+		children, err := s.ListNoteFolders(ctx, &FindNoteFolder{ParentID: &parentID, ParentIDSet: true})
 		if err != nil {
 			return nil, err
 		}
