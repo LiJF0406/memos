@@ -1,4 +1,5 @@
 import { timestampDate } from "@bufbuild/protobuf/wkt";
+import { Code, ConnectError } from "@connectrpc/connect";
 import { LoaderIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -66,9 +67,14 @@ function PasswordSignInForm({ redirectPath }: PasswordSignInFormProps) {
       await initialize();
       navigateTo(redirectPath || ROUTES.HOME, { replace: true });
     } catch (error: unknown) {
-      handleError(error, toast.error, {
-        fallbackMessage: "Failed to sign in.",
-      });
+      // InvalidArgument 表示用户名或密码不匹配，展示本地化的友好提示
+      if (error instanceof ConnectError && error.code === Code.InvalidArgument) {
+        toast.error(t("auth.username-or-password-wrong"));
+      } else {
+        handleError(error, toast.error, {
+          fallbackMessage: "Failed to sign in.",
+        });
+      }
     }
     actionBtnLoadingState.setFinish();
   };

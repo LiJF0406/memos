@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"net/http"
 
 	"connectrpc.com/connect"
@@ -69,7 +70,9 @@ func convertGRPCError(err error) error {
 		return nil
 	}
 	if st, ok := status.FromError(err); ok {
-		return connect.NewError(grpcCodeToConnectCode(st.Code()), err)
+		// Use the plain-text message from the gRPC status instead of the wrapped error,
+		// whose Error() output contains the "rpc error: code = ... desc = ..." prefix.
+		return connect.NewError(grpcCodeToConnectCode(st.Code()), errors.New(st.Message()))
 	}
 	return connect.NewError(connect.CodeInternal, err)
 }

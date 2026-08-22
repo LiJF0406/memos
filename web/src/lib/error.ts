@@ -1,4 +1,13 @@
 export function getErrorMessage(error: unknown, fallback = "Unknown error"): string {
+  // Connect RPC 错误优先取 rawMessage，避免展示 "[invalid_argument]" 这类技术前缀
+  if (error && typeof error === "object" && "rawMessage" in error) {
+    const raw = (error as { rawMessage?: unknown }).rawMessage;
+    // 仅当确实是非空字符串时才使用，避免 "null"/"undefined" 被当作有效消息
+    if (typeof raw === "string" && raw) {
+      return raw;
+    }
+  }
+
   if (error instanceof Error) {
     return error.message;
   }

@@ -14,7 +14,8 @@
     "protected-memo-notice": "This memo is not public. Sign in to continue.",
     "repeat-new-password": "Repeat the new password",
     "sign-in-tip": "Already have an account?",
-    "sign-up-tip": "Don't have an account yet?"
+    "sign-up-tip": "Don't have an account yet?",
+    "username-or-password-wrong": "Invalid username or password."
   },
   "demo": {
     "banner-description": "Changes are temporary and may be reset.",
