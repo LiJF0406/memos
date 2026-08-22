@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, Trash2Icon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { useTranslate } from "@/utils/i18n";
 
@@ -21,6 +21,7 @@ interface TableContextMenuProps {
  */
 const TableContextMenu = ({ editor }: TableContextMenuProps) => {
   const t = useTranslate();
+  const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
@@ -51,12 +52,19 @@ const TableContextMenu = ({ editor }: TableContextMenuProps) => {
       triggerRef.current.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: event.clientX, clientY: event.clientY }));
     };
 
+    // 滚动时关闭菜单（捕获阶段可同时捕获文档与任意滚动容器的滚动）。
+    const handleScroll = () => setOpen(false);
+
     el.addEventListener("contextmenu", handleContextMenu);
-    return () => el.removeEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      el.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
   }, [editor]);
 
   return (
-    <ContextMenu>
+    <ContextMenu open={open} onOpenChange={setOpen}>
       <ContextMenuTrigger
         ref={triggerRef}
         // 隐藏触发元素：不占布局、不拦截鼠标，仅承载 Radix 的坐标锚点。
