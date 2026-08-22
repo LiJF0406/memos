@@ -3,6 +3,7 @@ import getCaretCoordinates from "textarea-caret";
 import { cn } from "@/lib/utils";
 import { EDITOR_HEIGHT } from "../constants";
 import type { EditorController } from "../types/editorController";
+import { resolveAutoPair, shouldDeletePair } from "../utils/auto-pair";
 
 interface PlainEditorProps {
   className: string;
@@ -203,6 +204,59 @@ const PlainEditor = forwardRef(function PlainEditor(props: PlainEditorProps, ref
     }
   }, [handleContentChangeCallback, updateEditorHeight, scrollToCaret]);
 
+  // 自动符号配对：输入左符号补右符号、选区包裹、闭合符跳过、成对删除。
+  // 决策逻辑在 utils/auto-pair.ts（与 WYSIWYG 扩展共用），此处只做 DOM 手术。
+  const handleEditorKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // 中文输入法组合期不拦截，避免干扰候选过程。
+    if (event.nativeEvent.isComposing) {
+      return;
+    }
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const { key } = event;
+    const { selectionStart, selectionEnd, value } = editor;
+
+    if (key === "Backspace") {
+      // 成对删除仅针对空选区且光标夹在一对符号中间的情况
+      if (selectionStart !== selectionEnd || selectionStart === 0) return;
+      if (!shouldDeletePair(value[selectionStart - 1], value[selectionStart])) return;
+      event.preventDefault();
+      applyEditPreservingUndo(editor, selectionStart - 1, selectionEnd + 1, "");
+      editor.setSelectionRange(selectionStart - 1, selectionStart - 1);
+      return;
+    }
+
+    // 只处理单字符可打印按键；其余修饰键/功能键走默认行为
+    if (key.length !== 1) return;
+
+    const selectedText = value.slice(selectionStart, selectionEnd);
+    const prevChar = selectionStart > 0 ? value[selectionStart - 1] : "";
+    const nextChar = selectionEnd < value.length ? value[selectionEnd] : "";
+    const action = resolveAutoPair(key, prevChar, nextChar, selectedText);
+    if (!action) return;
+
+    event.preventDefault();
+    switch (action.type) {
+      case "pair": {
+        applyEditPreservingUndo(editor, selectionStart, selectionEnd, action.open + action.close);
+        editor.setSelectionRange(selectionStart + 1, selectionStart + 1);
+        break;
+      }
+      case "wrap": {
+        const content = value.slice(selectionStart, selectionEnd);
+        applyEditPreservingUndo(editor, selectionStart, selectionEnd, `${action.open}${content}${action.close}`);
+        // 包裹后保持选中中间内容，便于继续输入或再次包裹
+        editor.setSelectionRange(selectionStart + 1, selectionStart + 1 + content.length);
+        break;
+      }
+      case "skip": {
+        editor.setSelectionRange(selectionEnd + 1, selectionEnd + 1);
+        break;
+      }
+    }
+  }, []);
+
   // Recalculate editor height when focus mode changes
   useEffect(() => {
     updateEditorHeight();
@@ -228,10 +282,30 @@ const PlainEditor = forwardRef(function PlainEditor(props: PlainEditorProps, ref
         ref={editorRef}
         onPaste={onPaste}
         onInput={handleEditorInput}
+        onKeyDown={handleEditorKeyDown}
       ></textarea>
     </div>
   );
 });
+
+/**
+ * 用 [start, end) 区间替换为 replacement，并尽量保留浏览器原生撤销栈：
+ * execCommand 走真实编辑路径（触发原生 input 事件，React onInput 随之同步）。
+ * 无 execCommand 的环境（如 jsdom 测试）回退为直接改值并手动派发 input 事件。
+ */
+function applyEditPreservingUndo(textarea: HTMLTextAreaElement, start: number, end: number, replacement: string): void {
+  textarea.focus();
+  textarea.setSelectionRange(start, end);
+  let handled = false;
+  if (typeof document.execCommand === "function") {
+    handled = replacement ? document.execCommand("insertText", false, replacement) : document.execCommand("delete");
+  }
+  if (!handled) {
+    const value = textarea.value;
+    textarea.value = value.slice(0, start) + replacement + value.slice(end);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
 
 function toggleTextStyle(editor: TextareaActions, delimiter: string): void {
   const cursorPosition = editor.getCursorPosition();

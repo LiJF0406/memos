@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES as Routes } from "@/router/routes";
 import { EDITOR_HEIGHT } from "../constants";
 import type { EditorController } from "../types/editorController";
+import { AutoPairing } from "./AutoPairing";
 import BubbleToolbar from "./BubbleToolbar";
 import { buildExtensions } from "./extensions";
 import { SlashCommand } from "./SlashCommand";
@@ -147,6 +148,7 @@ const Editor = forwardRef<EditorController, EditorProps>(function Editor(props, 
       Placeholder.configure({ placeholder: () => placeholderRef.current }),
       TagSuggestion.configure({ getTags: () => tagsRef.current }),
       SlashCommand,
+      AutoPairing,
       SaveShortcutPassthrough,
       CollapseAllSelectionAfterDelete,
     ],

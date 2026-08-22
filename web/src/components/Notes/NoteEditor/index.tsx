@@ -10,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import { MarkdownRenderContext, rootMarkdownRenderContext } from "@/components/MemoContent/MarkdownRenderContext";
 import { buildMemoMarkdownComponents } from "@/components/MemoContent/MemoMarkdownRenderer";
 import { CollapseAllSelectionAfterDelete, isPastedUrl } from "@/components/MemoEditor/Editor";
+import { AutoPairing } from "@/components/MemoEditor/Editor/AutoPairing";
 import BubbleToolbar from "@/components/MemoEditor/Editor/BubbleToolbar";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { SlashCommand } from "@/components/MemoEditor/Editor/SlashCommand";
@@ -157,6 +158,7 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
       WikiLinkSuggestion.configure({ getItems: () => suggestionItemsRef.current }),
       SlashCommand,
       TagSuggestion.configure({ getTags: () => noteTagsRef.current }),
+      AutoPairing,
       CollapseAllSelectionAfterDelete,
       LivePreview,
     ],
