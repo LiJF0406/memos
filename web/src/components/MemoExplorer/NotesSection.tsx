@@ -2,6 +2,7 @@ import { create } from "@bufbuild/protobuf";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { MoveFolderDialog } from "@/components/Notes/MoveFolderDialog";
 import NoteFolderTree from "@/components/Notes/NoteFolderTree";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -37,6 +38,8 @@ const NotesSection = () => {
   const [folderDialogSubmitting, setFolderDialogSubmitting] = useState(false);
   // Delete confirmation.
   const [deleteTarget, setDeleteTarget] = useState<NoteFolder | null>(null);
+  // Move-to destination dialog.
+  const [moveTarget, setMoveTarget] = useState<NoteFolder | null>(null);
 
   const updateFolderParam = (folderId: string | null) => {
     const params = new URLSearchParams(searchParams);
@@ -100,6 +103,17 @@ const NotesSection = () => {
     }
   };
 
+  const handleConfirmMove = async (parent: string | null) => {
+    if (!moveTarget) {
+      return;
+    }
+    await updateFolder.mutateAsync({
+      update: { name: moveTarget.name, parent: parent ?? "" },
+      updateMask: ["parent"],
+    });
+    setMoveTarget(null);
+  };
+
   return (
     <div className="w-full flex flex-col justify-start items-start mt-3 px-1 h-auto shrink-0 flex-nowrap">
       <div className="flex flex-row justify-between items-center w-full gap-1 mb-1 text-sm leading-6 text-muted-foreground select-none">
@@ -114,6 +128,7 @@ const NotesSection = () => {
         onCreateFolder={openCreateFolderDialog}
         onRenameFolder={openRenameFolderDialog}
         onDeleteFolder={setDeleteTarget}
+        onMoveFolder={setMoveTarget}
       />
 
       <Dialog open={folderDialogOpen} onOpenChange={(open) => !folderDialogSubmitting && setFolderDialogOpen(open)}>
@@ -153,6 +168,17 @@ const NotesSection = () => {
         confirmVariant="destructive"
         onConfirm={handleConfirmDelete}
       />
+
+      {moveTarget && (
+        <MoveFolderDialog
+          open
+          onOpenChange={(open) => !open && setMoveTarget(null)}
+          folders={folders}
+          currentUserName={currentUser?.name ?? ""}
+          movingFolder={moveTarget}
+          onConfirm={handleConfirmMove}
+        />
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import {
   ChevronRightIcon,
   FilePlus2Icon,
   FolderIcon,
+  FolderInputIcon,
   LinkIcon,
   MoreHorizontalIcon,
   PencilIcon,
@@ -24,6 +25,7 @@ interface NoteFolderTreeProps {
   onCreateFolder: (parentId: string | null) => void;
   onRenameFolder: (folder: NoteFolder) => void;
   onDeleteFolder: (folder: NoteFolder) => void;
+  onMoveFolder: (folder: NoteFolder) => void;
 }
 
 const NoteFolderTree = ({
@@ -35,6 +37,7 @@ const NoteFolderTree = ({
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
+  onMoveFolder,
 }: NoteFolderTreeProps) => {
   const t = useTranslate();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -117,6 +120,10 @@ const NoteFolderTree = ({
             </DropdownMenuItem>
             {allowModify && (
               <>
+                <DropdownMenuItem onClick={() => onMoveFolder(folder)}>
+                  <FolderInputIcon />
+                  {t("note.move-folder")}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onRenameFolder(folder)}>
                   <PencilIcon />
                   {t("note.rename")}
