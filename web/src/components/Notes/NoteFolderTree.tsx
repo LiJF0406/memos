@@ -1,5 +1,17 @@
-import { ChevronDownIcon, ChevronRightIcon, FilePlus2Icon, FolderIcon, LinkIcon, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  FilePlus2Icon,
+  FolderIcon,
+  LinkIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { NoteFolder } from "@/types/proto/api/v1/note_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -83,45 +95,37 @@ const NoteFolderTree = ({
     });
   };
 
-  const renderActions = (folder: NoteFolder, writable: boolean) => {
+  const renderFolderMenu = (folder: NoteFolder, writable: boolean, allowModify: boolean) => {
     if (!writable) {
       return null;
     }
     return (
-      <span className="ml-auto hidden group-hover:flex items-center gap-0.5">
-        <button
-          type="button"
-          className="p-0.5 rounded hover:bg-background/60"
-          title={t("note.new-folder")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onCreateFolder(folder.name);
-          }}
-        >
-          <PlusIcon className="w-3.5 h-auto" />
-        </button>
-        <button
-          type="button"
-          className="p-0.5 rounded hover:bg-background/60"
-          title={t("note.rename")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onRenameFolder(folder);
-          }}
-        >
-          <PencilIcon className="w-3.5 h-auto" />
-        </button>
-        <button
-          type="button"
-          className="p-0.5 rounded hover:bg-background/60"
-          title={t("note.delete")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onDeleteFolder(folder);
-          }}
-        >
-          <TrashIcon className="w-3.5 h-auto" />
-        </button>
+      <span className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="ghost" size="icon" className="size-4" onClick={(event) => event.stopPropagation()}>
+              <MoreHorizontalIcon className="text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" sideOffset={2}>
+            <DropdownMenuItem onClick={() => onCreateFolder(folder.name)}>
+              <PlusIcon />
+              {t("note.new-folder")}
+            </DropdownMenuItem>
+            {allowModify && (
+              <>
+                <DropdownMenuItem onClick={() => onRenameFolder(folder)}>
+                  <PencilIcon />
+                  {t("note.rename")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDeleteFolder(folder)}>
+                  <TrashIcon />
+                  {t("note.delete")}
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </span>
     );
   };
@@ -158,7 +162,7 @@ const NoteFolderTree = ({
           <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
           <span className="truncate">{folder.title}</span>
           {folder.shared && <LinkIcon className="w-3.5 h-auto shrink-0 text-primary" />}
-          {renderActions(folder, writable)}
+          {renderFolderMenu(folder, writable, true)}
         </div>
         {!isCollapsed && children.map((child) => renderFolder(child, depth + 1, childrenMap, writable))}
       </div>
@@ -200,19 +204,7 @@ const NoteFolderTree = ({
             )}
             <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
             <span className="truncate font-medium">{t("note.my-notes")}</span>
-            <span className="ml-auto hidden group-hover:flex items-center gap-0.5">
-              <button
-                type="button"
-                className="p-0.5 rounded hover:bg-background/60"
-                title={t("note.new-folder")}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onCreateFolder(defaultFolder.name);
-                }}
-              >
-                <PlusIcon className="w-3.5 h-auto" />
-              </button>
-            </span>
+            {renderFolderMenu(defaultFolder, true, false)}
           </div>
           {!collapsed.has(defaultFolder.name) && children.map((child) => renderFolder(child, 1, childrenByParent, true))}
         </div>
