@@ -117,7 +117,7 @@ const NotesSection = () => {
       />
 
       <Dialog open={folderDialogOpen} onOpenChange={(open) => !folderDialogSubmitting && setFolderDialogOpen(open)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>{folderDialogMode === "create" ? t("note.new-folder") : t("note.rename")}</DialogTitle>
           </DialogHeader>
