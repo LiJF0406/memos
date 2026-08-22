@@ -143,7 +143,7 @@ const NoteFolderTree = ({
         <div
           className={cn(
             "group flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
-            isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+            isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 hover:text-accent-foreground",
           )}
           style={{ paddingLeft: `${depth * 14 + 8}px` }}
           onClick={() => onSelectFolder(folder.name)}
@@ -182,7 +182,7 @@ const NoteFolderTree = ({
           <div
             className={cn(
               "group flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
-              isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+              isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 hover:text-accent-foreground",
             )}
             style={{ paddingLeft: "8px" }}
             onClick={() => onSelectFolder(defaultFolder.name)}
@@ -220,7 +220,7 @@ const NoteFolderTree = ({
       <div
         className={cn(
           "flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
-          selectedFolderId === null ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground",
+          selectedFolderId === null ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 hover:text-accent-foreground",
         )}
         onClick={() => onSelectFolder(null)}
       >
@@ -244,7 +244,7 @@ const NoteFolderTree = ({
       {!defaultFolder && (
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-accent-foreground"
           onClick={() => onCreateFolder(null)}
         >
           <PlusIcon className="w-4 h-auto" />
