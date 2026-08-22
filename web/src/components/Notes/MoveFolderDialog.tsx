@@ -17,13 +17,22 @@ interface MoveFolderDialogProps {
 
 export const MoveFolderDialog = ({ open, onOpenChange, folders, currentUserName, movingFolder, onConfirm }: MoveFolderDialogProps) => {
   const t = useTranslate();
+  const defaultFolder = folders.find((folder) => folder.isDefault && folder.creator === currentUserName);
+
+  const getInitialParent = (): string | null => {
+    if (movingFolder.parent && folders.some((folder) => folder.name === movingFolder.parent && folder.creator === currentUserName)) {
+      return movingFolder.parent;
+    }
+    return defaultFolder?.name ?? null;
+  };
+
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [selectedParent, setSelectedParent] = useState<string | null>(movingFolder.parent ?? null);
+  const [selectedParent, setSelectedParent] = useState<string | null>(getInitialParent);
 
   // Reset selection whenever the dialog opens for a new folder.
   const handleOpenChange = (next: boolean) => {
     if (next) {
-      setSelectedParent(movingFolder.parent ?? null);
+      setSelectedParent(getInitialParent());
       setCollapsed(new Set());
     }
     onOpenChange(next);
@@ -32,7 +41,11 @@ export const MoveFolderDialog = ({ open, onOpenChange, folders, currentUserName,
   // Rebuild the destination tree when the dialog opens.
   const tree = useMemo(() => {
     if (!open) {
-      return { roots: [] as NoteFolder[], childrenByParent: new Map<string, NoteFolder[]>(), excluded: new Set<string>() };
+      return {
+        roots: [] as NoteFolder[],
+        childrenByParent: new Map<string, NoteFolder[]>(),
+        defaultFolder: undefined as NoteFolder | undefined,
+      };
     }
 
     const personal = folders.filter((folder) => folder.creator === currentUserName);
@@ -62,11 +75,11 @@ export const MoveFolderDialog = ({ open, onOpenChange, folders, currentUserName,
       siblings.sort((a, b) => a.title.localeCompare(b.title));
     }
 
-    // Roots: personal folders whose parent is not an available folder.
+    const defaultFolder = available.find((folder) => folder.isDefault);
     const availableNames = new Set(available.map((folder) => folder.name));
     const roots = available.filter((folder) => !folder.parent || !availableNames.has(folder.parent));
 
-    return { roots, childrenByParent, excluded };
+    return { roots, childrenByParent, defaultFolder };
   }, [open, folders, currentUserName, movingFolder]);
 
   const toggle = (name: string) => {
@@ -111,9 +124,53 @@ export const MoveFolderDialog = ({ open, onOpenChange, folders, currentUserName,
             <span className="w-5 shrink-0" />
           )}
           <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
-          <span className="truncate">{folder.title}</span>
+          <span className="truncate">{folder.isDefault ? t("note.my-notes") : folder.title}</span>
         </div>
         {!isCollapsed && children.map((child) => renderRow(child, depth + 1))}
+      </div>
+    );
+  };
+
+  // The default folder ("My Notes") is the personal root; root-level folders
+  // are shown beneath it, matching the sidebar tree.
+  const renderDefaultRow = () => {
+    const def = tree.defaultFolder;
+    if (!def) {
+      return null;
+    }
+    const rootLevel = (tree.childrenByParent.get("") ?? []).filter((folder) => folder.name !== def.name);
+    const children = [...(tree.childrenByParent.get(def.name) ?? []), ...rootLevel];
+    const isCollapsed = collapsed.has(def.name);
+    const isSelected = selectedParent === def.name;
+
+    return (
+      <div>
+        <div
+          className={cn(
+            "flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
+            isSelected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 hover:text-accent-foreground",
+          )}
+          style={{ paddingLeft: "8px" }}
+          onClick={() => setSelectedParent(def.name)}
+        >
+          {children.length > 0 ? (
+            <button
+              type="button"
+              className="shrink-0 rounded p-0.5 hover:bg-background/60 cursor-pointer"
+              onClick={(event) => {
+                event.stopPropagation();
+                toggle(def.name);
+              }}
+            >
+              {isCollapsed ? <ChevronRightIcon className="w-3.5 h-auto" /> : <ChevronDownIcon className="w-3.5 h-auto" />}
+            </button>
+          ) : (
+            <span className="w-5 shrink-0" />
+          )}
+          <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
+          <span className="truncate">{t("note.my-notes")}</span>
+        </div>
+        {!isCollapsed && children.map((child) => renderRow(child, 1))}
       </div>
     );
   };
@@ -129,19 +186,7 @@ export const MoveFolderDialog = ({ open, onOpenChange, folders, currentUserName,
           <DialogTitle>{t("note.move-folder")}</DialogTitle>
         </DialogHeader>
         <div className="max-h-[320px] overflow-y-auto">
-          <button
-            type="button"
-            className={cn(
-              "flex w-full items-center gap-1 rounded-lg px-2 py-1.5 text-sm cursor-pointer transition-colors",
-              selectedParent === null ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 hover:text-accent-foreground",
-            )}
-            style={{ paddingLeft: "8px" }}
-            onClick={() => setSelectedParent(null)}
-          >
-            <FolderIcon className="w-4 h-auto shrink-0 text-muted-foreground" />
-            <span>{t("note.move-to-root")}</span>
-          </button>
-          {tree.roots.map((folder) => renderRow(folder, 0))}
+          {tree.defaultFolder ? renderDefaultRow() : tree.roots.map((folder) => renderRow(folder, 0))}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
