@@ -134,6 +134,12 @@
     "any-thoughts": "此刻的想法...",
     "exit-focus-mode": "退出聚焦模式",
     "focus-mode": "聚焦模式",
+    "bubble-toolbar": {
+      "bold": "加粗",
+      "heading": "标题 {{level}}",
+      "italic": "斜体",
+      "text": "正文"
+    },
     "no-changes-detected": "未检测到更改",
     "save": "保存",
     "saving": "保存中...",

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { ROUTES as Routes } from "@/router/routes";
 import { EDITOR_HEIGHT } from "../constants";
 import type { EditorController } from "../types/editorController";
+import BubbleToolbar from "./BubbleToolbar";
 import { buildExtensions } from "./extensions";
 import { SlashCommand } from "./SlashCommand";
 import { TagSuggestion } from "./TagSuggestion";
@@ -264,6 +265,8 @@ const Editor = forwardRef<EditorController, EditorProps>(function Editor(props, 
       }}
     >
       <RichTextContent editor={editor} className="w-full" />
+      {/* 选中文本时浮动显示：标题级别/正文切换 + 加粗/斜体 */}
+      {editor && <BubbleToolbar editor={editor} />}
     </div>
   );
 });

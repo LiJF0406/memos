@@ -10,6 +10,7 @@ import remarkGfm from "remark-gfm";
 import { MarkdownRenderContext, rootMarkdownRenderContext } from "@/components/MemoContent/MarkdownRenderContext";
 import { buildMemoMarkdownComponents } from "@/components/MemoContent/MemoMarkdownRenderer";
 import { CollapseAllSelectionAfterDelete, isPastedUrl } from "@/components/MemoEditor/Editor";
+import BubbleToolbar from "@/components/MemoEditor/Editor/BubbleToolbar";
 import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { SlashCommand } from "@/components/MemoEditor/Editor/SlashCommand";
 import { TagSuggestion } from "@/components/MemoEditor/Editor/TagSuggestion";
@@ -287,6 +288,8 @@ const NoteEditor = ({ noteName, initialContent }: NoteEditorProps) => {
       ) : (
         <div className={cn("w-full min-h-40")}>
           <EditorContent editor={editor} />
+          {/* 选中文本时浮动显示标题/加粗/斜体工具栏 */}
+          {editor && <BubbleToolbar editor={editor} />}
         </div>
       )}
     </div>

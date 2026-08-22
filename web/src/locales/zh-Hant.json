@@ -164,6 +164,12 @@
     "any-thoughts": "任何想法...",
     "exit-focus-mode": "退出專注模式",
     "focus-mode": "專注模式",
+    "bubble-toolbar": {
+      "bold": "粗體",
+      "heading": "標題 {{level}}",
+      "italic": "斜體",
+      "text": "內文"
+    },
     "insert-menu": {
       "add-location": "新增位置",
       "link-memo": "連結備忘錄",

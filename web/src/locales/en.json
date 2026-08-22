@@ -166,6 +166,12 @@
     "any-thoughts": "Any thoughts...",
     "exit-focus-mode": "Exit Focus Mode",
     "focus-mode": "Focus Mode",
+    "bubble-toolbar": {
+      "bold": "Bold",
+      "heading": "Heading {{level}}",
+      "italic": "Italic",
+      "text": "Text"
+    },
     "insert-menu": {
       "add-location": "Add location",
       "link-memo": "Link memo",
