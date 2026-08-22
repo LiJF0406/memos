@@ -33,9 +33,10 @@ go test ./...                      # Run all Go tests
 go test -v ./store/...             # Store tests, incl. DB driver + migration tests via TestContainers (requires Docker)
 go test -v -race ./server/...      # Server tests with race detector
 go test -v -race ./internal/...    # Internal package tests with race detector
+$env:CGO_ENABLED = "1"; go test -race ./server/...  # Windows local: race needs CGO; gcc (winget WinLibs mingw-w64) is installed
 go test -v -run TestFoo ./pkg/...  # Run matching Go tests
 go mod tidy -go=1.26.2             # Match CI tidy check
-golangci-lint run                  # Go lint, config: .golangci.yaml
+golangci-lint run                  # Go lint, config: .golangci.yaml (v2.11.3 installed locally, matches CI)
 golangci-lint run --fix            # Auto-fix lint, including goimports
 
 # Frontend
