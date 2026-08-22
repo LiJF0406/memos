@@ -36,18 +36,35 @@ export const slashCommandItems: SlashCommandItem[] = [
   },
   {
     name: "table",
-    // After insert the preservedBlock text starts at range.from. "| Header …"
-    // has "| " (2 chars) before the first cell label, so range.from+2 lands on
-    // the "H" of "Header" — matching the textarea editor's first-header-cell
-    // cursor placement.
-    apply: (editor, range) =>
+    apply: (editor, range) => {
       editor
         .chain()
         .focus()
         .deleteRange(range)
         .insertContent("| Header | Header |\n| ------ | ------ |\n| Cell   | Cell |", { contentType: "markdown" })
-        .setTextSelection(range.from + 2)
-        .run(),
+        .run();
+      // Place the cursor on the first header cell's text (matching the raw
+      // editor's first-header-cell placement). Scope the search to positions
+      // at/after the insertion point (range.from) so preceding prose does not
+      // steal the cursor — the table is inserted exactly at range.from.
+      let targetPos: number | undefined;
+      editor.state.doc.descendants((node, pos) => {
+        if (targetPos !== undefined) {
+          return false;
+        }
+        if (pos < range.from) {
+          return true;
+        }
+        if (node.isText && node.text) {
+          targetPos = pos;
+          return false;
+        }
+        return true;
+      });
+      if (targetPos !== undefined) {
+        editor.commands.setTextSelection(targetPos);
+      }
+    },
   },
 ];
 

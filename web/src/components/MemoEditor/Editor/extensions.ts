@@ -4,7 +4,9 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Markdown } from "@tiptap/markdown";
 import StarterKit from "@tiptap/starter-kit";
 import { type HeadingLevel, headingClass, markdownStyles } from "@/lib/markdownStyles";
+import { NoteCodeBlock } from "./codeBlock";
 import { preservedExtensions } from "./PreservedBlock";
+import { styledTableExtensions } from "./styledTable";
 import { Tag } from "./Tag";
 
 /**
@@ -31,6 +33,9 @@ export function buildExtensions(): AnyExtension[] {
   return [
     StarterKit.configure({
       heading: false,
+      // Code blocks are replaced by NoteCodeBlock (shared read-only rendering
+      // with syntax highlighting); disabled so the schema has exactly one.
+      codeBlock: false,
       link: { openOnClick: false, HTMLAttributes: { class: markdownStyles.link } },
       // Markdown has no underline syntax; keeping the extension would let
       // Ctrl+U create marks that cannot serialize. Out of the schema entirely.
@@ -47,6 +52,8 @@ export function buildExtensions(): AnyExtension[] {
     TaskList,
     TaskItem.configure({ nested: true }),
     Markdown,
+    NoteCodeBlock,
+    ...styledTableExtensions,
     ...preservedExtensions,
     Tag,
   ];

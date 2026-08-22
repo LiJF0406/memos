@@ -50,6 +50,40 @@ export const markdownStyles = {
   horizontalRule: "my-2 h-0 border-0 border-b border-border",
 } as const;
 
+/**
+ * Code-block styling, shared by the read-only memo view (MemoContent/CodeBlock)
+ * and the WYSIWYG editor's code-block node view, so a fenced code block looks
+ * identical while editing and after saving. Kept here as static literals so
+ * Tailwind's JIT scanner picks them up and the two renderers cannot drift.
+ */
+export const codeBlockStyles = {
+  frame: "relative my-2 rounded-lg border border-border bg-muted/20 overflow-hidden",
+  header: "flex items-center justify-between px-2 py-1 border-b border-border bg-muted/30",
+  label: "text-xs text-foreground select-none",
+  copyButtonBase:
+    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-colors duration-200 hover:bg-accent active:scale-95",
+  codeWrap: "overflow-x-auto",
+  code: "block px-3 py-2 text-sm leading-relaxed",
+} as const;
+
+/**
+ * Table styling, shared by the read-only memo view (MemoContent/Table.tsx) and
+ * the WYSIWYG editor's table rendering. The editor renders all rows inside one
+ * <tbody> (prosemirror-tables schema has no separate <thead>), so the "thead"
+ * look (border + muted background) is applied to the header <th> cells and the
+ * row separators come from a divide-y on the <tbody> — which together match
+ * the read-only table markup.
+ */
+export const tableStyles = {
+  wrapper: "my-2 w-full overflow-x-auto rounded-lg border border-border bg-muted/20",
+  table: "w-full border-collapse text-sm",
+  thead: "border-b border-border bg-muted/30",
+  tbody: "divide-y divide-border",
+  row: "transition-colors hover:bg-accent/20",
+  headerCell: "px-2 py-1 text-left align-middle text-sm font-medium text-muted-foreground",
+  cell: "px-2 py-1 text-left align-middle text-sm",
+} as const;
+
 /** Complete heading class for a given level (shared base + per-level classes). */
 export const headingClass = (level: HeadingLevel): string => headingClasses[level];
 

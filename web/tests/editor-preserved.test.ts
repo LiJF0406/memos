@@ -1,4 +1,6 @@
+import { generateHTML } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
+import { buildExtensions } from "@/components/MemoEditor/Editor/extensions";
 import { parseMarkdown, roundTripMarkdown } from "@/components/MemoEditor/Editor/markdownCodec";
 
 function blockTypes(markdown: string): string[] {
@@ -6,9 +8,36 @@ function blockTypes(markdown: string): string[] {
 }
 
 describe("PreservedBlock", () => {
-  it("captures a table as a single preservedBlock node", () => {
+  it("captures a table as a real table node", () => {
     const md = "| a | b |\n| --- | --- |\n| 1 | 2 |";
-    expect(blockTypes(md)).toEqual(["preservedBlock"]);
+    expect(blockTypes(md)).toEqual(["table"]);
+  });
+
+  it("round-trips a GFM table through the codec", () => {
+    const md = "| a | b |\n| --- | --- |\n| 1 | 2 |";
+    const once = roundTripMarkdown(md);
+    expect(once.trim().startsWith("|")).toBe(true);
+    expect(once.trim()).toMatch(/\| a \s+\| b \s+\|/);
+    expect(roundTripMarkdown(once)).toBe(once);
+  });
+
+  it("round-trips a table surrounded by text", () => {
+    const md = "before\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter";
+    const once = roundTripMarkdown(md);
+    expect(roundTripMarkdown(once)).toBe(once);
+    expect(once).toContain("before");
+    expect(once).toContain("after");
+    expect(once).toContain("| --- |");
+  });
+
+  it("renders the table with the shared read-only wrapper classes", () => {
+    const doc = parseMarkdown("| a | b |\n| --- | --- |\n| 1 | 2 |");
+    const html = generateHTML(doc, buildExtensions());
+    expect(html).toContain('class="my-2 w-full overflow-x-auto rounded-lg border border-border bg-muted/20"');
+    expect(html).toContain('<table class="w-full border-collapse text-sm">');
+    expect(html).toContain("<th");
+    expect(html).toContain("<td");
+    expect(html).toContain('class="divide-y divide-border"');
   });
 
   it("captures block math as preservedBlock", () => {

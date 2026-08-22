@@ -71,13 +71,6 @@ function preservedInlineFromToken(token: MarkdownToken, helpers: MarkdownParseHe
   return helpers.createTextNode(token.raw ?? "", [{ type: "preservedInline" }]);
 }
 
-/** Routes marked's `table` tokens into preservedBlock instead of dropping them. */
-export const PreservedTableBridge = Extension.create({
-  name: "preservedTableBridge",
-  markdownTokenName: "table",
-  parseMarkdown: preservedBlockFromToken,
-});
-
 /**
  * Routes block-level raw HTML into preservedBlock. Inline HTML never reaches
  * the handler registry (the markdown manager intercepts it and would convert
@@ -209,7 +202,6 @@ export const PreservedMathInlineBridge = Extension.create({
 export const preservedExtensions = [
   PreservedBlock,
   PreservedInline,
-  PreservedTableBridge,
   PreservedHtmlBlockBridge,
   PreservedHtmlInlineBridge,
   PreservedMathBlockBridge,

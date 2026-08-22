@@ -46,20 +46,32 @@ describe("WYSIWYG slash commands", () => {
     expect(sel.to).toBe(5);
   });
 
-  it("table inserts a preserved markdown table", () => {
+  it("table inserts a real markdown table", () => {
     const markdown = applyCommand("table");
-    expect(markdown).toContain("| Header | Header |");
-    expect(markdown).toContain("| ------ | ------ |");
+    expect(markdown).toContain("| Header");
+    expect(markdown).toContain("| ------");
   });
 
   it("table places cursor at the first header cell", () => {
-    // The preservedBlock text starts at range.from (pos 1). "| Header …" has
-    // "| " (2 chars) before the first label, so the command chains
-    // .setTextSelection(range.from + 2) = position 3, landing on the "H".
     applyCommand("table");
-    const sel = editor.state.selection;
-    expect(sel.from).toBe(3);
-    expect(sel.to).toBe(3);
+    const $pos = editor.state.selection.$from;
+    // Cursor is in the paragraph inside the first tableHeader cell
+    // (doc -> table -> tableRow -> tableHeader -> paragraph).
+    expect($pos.parent.type.name).toBe("paragraph");
+    expect($pos.node($pos.depth - 1).type.name).toBe("tableHeader");
+  });
+
+  it("table places cursor in the header cell even when prose precedes the command", () => {
+    // Regression: the cursor target must be scoped to the inserted table, not
+    // the first text node in the whole document.
+    editor = new Editor({ extensions: buildExtensions(), content: "before ", contentType: "markdown" });
+    editor.commands.insertContent("/");
+    const end = editor.state.doc.content.size;
+    const item = slashCommandItems.find((candidate) => candidate.name === "table")!;
+    item.apply(editor, { from: end - 2, to: end - 1 });
+    const $pos = editor.state.selection.$from;
+    expect($pos.parent.type.name).toBe("paragraph");
+    expect($pos.node($pos.depth - 1).type.name).toBe("tableHeader");
   });
 });
 

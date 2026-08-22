@@ -170,7 +170,15 @@
       "bold": "Bold",
       "heading": "Heading {{level}}",
       "italic": "Italic",
-      "text": "Text"
+      "text": "Text",
+      "add-row-above": "Insert row above",
+      "add-row-below": "Insert row below",
+      "delete-row": "Delete row",
+      "add-column-before": "Insert column before",
+      "add-column-after": "Insert column after",
+      "delete-column": "Delete column",
+      "delete-table": "Delete table",
+      "insert-table": "Insert table"
     },
     "insert-menu": {
       "add-location": "Add location",

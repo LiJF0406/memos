@@ -54,10 +54,11 @@
   margin-bottom: 0;
 }
 
-/* Editor-only element styles: task lists and code blocks have no shared markup
-   with the read-only memo view (MemoContent renders those via TaskListItem.tsx
-   and CodeBlock.tsx), so unlike the elements in markdownStyles.ts they stay
-   local to the editor here rather than in the shared style token. */
+/* Editor-only element styles: task lists have no shared markup with the
+   read-only memo view (MemoContent renders those via TaskListItem.tsx), so they
+   stay local to the editor here rather than in the shared style token. Code
+   blocks now share MemoContent/CodeBlock.tsx styling via codeBlockStyles, and
+   the shareable pieces live in markdownStyles.ts. */
 .memo-wysiwyg ul[data-type="taskList"],
 .note-wysiwyg ul[data-type="taskList"] {
   list-style: none;
@@ -81,20 +82,17 @@
   flex: 1 1 auto;
 }
 
-.memo-wysiwyg pre,
-.note-wysiwyg pre {
+/* Preserved-syntax blocks (raw HTML / math still captured as literal mono
+   text). Fenced code blocks are not <pre> in the editor anymore — they render
+   through the shared CodeBlock node view — so this only styles preserved blocks. */
+.memo-wysiwyg pre[data-preserved-block],
+.note-wysiwyg pre[data-preserved-block] {
   background: var(--muted);
   border-radius: 0.375rem;
   padding: 0.5rem 0.75rem;
   font-family: var(--font-mono, monospace);
   font-size: 0.875rem;
   white-space: pre-wrap;
-}
-
-.memo-wysiwyg pre code,
-.note-wysiwyg pre code {
-  background: transparent;
-  padding: 0;
 }
 
 /* Live Preview: 光标所在块的 Markdown 源码条 */

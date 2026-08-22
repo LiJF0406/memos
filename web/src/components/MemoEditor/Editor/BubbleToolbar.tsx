@@ -1,7 +1,7 @@
 import type { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { BubbleMenu } from "@tiptap/react/menus";
-import { BoldIcon, ItalicIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpIcon, BoldIcon, ItalicIcon, Trash2Icon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { type HeadingLevel } from "@/lib/markdownStyles";
@@ -66,7 +66,14 @@ const BubbleToolbar = ({ editor }: BubbleToolbarProps) => {
       // （聚焦 + 可编辑 + 非空选区 + 选区内有实际文本）并追加排除项。
       shouldShow={({ editor: ed, state, view, from, to }) => {
         const { selection } = state;
-        if (!view.hasFocus() || !ed.isEditable || selection.empty) {
+        if (!view.hasFocus() || !ed.isEditable) {
+          return false;
+        }
+        // 表格内编辑允许空选区（光标停在单元格里即可）。
+        if (ed.isActive("table")) {
+          return true;
+        }
+        if (selection.empty) {
           return false;
         }
         // 排除图片 NodeSelection 等非文本选区。
@@ -80,42 +87,104 @@ const BubbleToolbar = ({ editor }: BubbleToolbarProps) => {
         return !ed.isActive("codeBlock");
       }}
     >
-      {HEADING_LEVELS.map((level) => (
-        <BubbleButton
-          key={level}
-          active={editor.isActive("heading", { level })}
-          // 对当前级别再次点击即退回正文 —— 也是取消标题的方式之一。
-          onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
-          label={`${t("editor.bubble-toolbar.heading", { level })} (${formatHeadingShortcut(level)})`}
-        >
-          H{level}
-        </BubbleButton>
-      ))}
-      <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
-      <BubbleButton
-        active={editor.isActive("bold")}
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        label={`${t("editor.bubble-toolbar.bold")} (${formatSimpleShortcut("B")})`}
-      >
-        <BoldIcon className="size-4" strokeWidth={2.5} />
-      </BubbleButton>
-      <BubbleButton
-        active={editor.isActive("italic")}
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        label={`${t("editor.bubble-toolbar.italic")} (${formatSimpleShortcut("I")})`}
-      >
-        <ItalicIcon className="size-4" strokeWidth={2.5} />
-      </BubbleButton>
-      <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
-      <BubbleButton
-        active={!editor.isActive("heading") && !editor.isActive("codeBlock")}
-        onClick={() => editor.chain().focus().setParagraph().run()}
-        label={t("editor.bubble-toolbar.text")}
-      >
-        T
-      </BubbleButton>
+      {editor.isActive("table") ? (
+        <TableControls editor={editor} />
+      ) : (
+        <>
+          {HEADING_LEVELS.map((level) => (
+            <BubbleButton
+              key={level}
+              active={editor.isActive("heading", { level })}
+              // 对当前级别再次点击即退回正文 —— 也是取消标题的方式之一。
+              onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+              label={`${t("editor.bubble-toolbar.heading", { level })} (${formatHeadingShortcut(level)})`}
+            >
+              H{level}
+            </BubbleButton>
+          ))}
+          <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
+          <BubbleButton
+            active={editor.isActive("bold")}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            label={`${t("editor.bubble-toolbar.bold")} (${formatSimpleShortcut("B")})`}
+          >
+            <BoldIcon className="size-4" strokeWidth={2.5} />
+          </BubbleButton>
+          <BubbleButton
+            active={editor.isActive("italic")}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            label={`${t("editor.bubble-toolbar.italic")} (${formatSimpleShortcut("I")})`}
+          >
+            <ItalicIcon className="size-4" strokeWidth={2.5} />
+          </BubbleButton>
+          <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
+          <BubbleButton
+            active={!editor.isActive("heading") && !editor.isActive("codeBlock")}
+            onClick={() => editor.chain().focus().setParagraph().run()}
+            label={t("editor.bubble-toolbar.text")}
+          >
+            T
+          </BubbleButton>
+        </>
+      )}
     </BubbleMenu>
   );
 };
+
+/** 表格行/列增删工具按钮组：光标落在表格内时显示。 */
+function TableControls({ editor }: { editor: Editor }) {
+  const t = useTranslate();
+  return (
+    <>
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().addRowBefore().run()}
+        label={t("editor.bubble-toolbar.add-row-above")}
+      >
+        <ArrowUpIcon className="size-4" />
+      </BubbleButton>
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().addRowAfter().run()}
+        label={t("editor.bubble-toolbar.add-row-below")}
+      >
+        <ArrowDownIcon className="size-4" />
+      </BubbleButton>
+      <BubbleButton active={false} onClick={() => editor.chain().focus().deleteRow().run()} label={t("editor.bubble-toolbar.delete-row")}>
+        <Trash2Icon className="size-4" />
+      </BubbleButton>
+      <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().addColumnBefore().run()}
+        label={t("editor.bubble-toolbar.add-column-before")}
+      >
+        <ArrowLeftIcon className="size-4" />
+      </BubbleButton>
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().addColumnAfter().run()}
+        label={t("editor.bubble-toolbar.add-column-after")}
+      >
+        <ArrowRightIcon className="size-4" />
+      </BubbleButton>
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().deleteColumn().run()}
+        label={t("editor.bubble-toolbar.delete-column")}
+      >
+        <Trash2Icon className="size-4" />
+      </BubbleButton>
+      <span className="mx-0.5 h-4 w-px shrink-0 bg-border" />
+      <BubbleButton
+        active={false}
+        onClick={() => editor.chain().focus().deleteTable().run()}
+        label={t("editor.bubble-toolbar.delete-table")}
+      >
+        <Trash2Icon className="size-4" />
+      </BubbleButton>
+    </>
+  );
+}
 
 export default BubbleToolbar;

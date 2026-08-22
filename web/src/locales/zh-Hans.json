@@ -138,7 +138,15 @@
       "bold": "加粗",
       "heading": "标题 {{level}}",
       "italic": "斜体",
-      "text": "正文"
+      "text": "正文",
+      "add-row-above": "在上方插入行",
+      "add-row-below": "在下方插入行",
+      "delete-row": "删除行",
+      "add-column-before": "在左侧插入列",
+      "add-column-after": "在右侧插入列",
+      "delete-column": "删除列",
+      "delete-table": "删除表格",
+      "insert-table": "插入表格"
     },
     "no-changes-detected": "未检测到更改",
     "save": "保存",

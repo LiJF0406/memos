@@ -1,4 +1,3 @@
-import copy from "copy-to-clipboard";
 import hljs from "highlight.js/lib/core";
 import bash from "highlight.js/lib/languages/bash";
 import c from "highlight.js/lib/languages/c";
@@ -20,8 +19,10 @@ import yaml from "highlight.js/lib/languages/yaml";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { isValidElement, type ReactElement, type ReactNode, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { codeBlockStyles } from "@/lib/markdownStyles";
 import { cn } from "@/lib/utils";
-import { getThemeWithFallback, resolveTheme } from "@/utils/theme";
+import { copyText } from "@/utils/clipboard";
+import { ensureHighlightTheme, isDarkThemeFromSettings } from "@/utils/highlightTheme";
 import { MermaidBlock } from "./MermaidBlock";
 import type { ReactMarkdownProps } from "./markdown/types";
 import { extractCodeContent, extractLanguage } from "./utils";
@@ -74,36 +75,12 @@ export const CodeBlock = ({ children, className, node: _node, ...props }: CodeBl
     );
   }
 
-  const theme = getThemeWithFallback(userGeneralSetting?.theme);
-  const resolvedTheme = resolveTheme(theme);
-  const isDarkTheme = resolvedTheme.includes("dark");
+  // Dynamically load the highlight.js theme matching the app theme.
+  const isDarkTheme = isDarkThemeFromSettings(userGeneralSetting?.theme);
 
-  // Dynamically load highlight.js theme based on app theme
   useEffect(() => {
-    const dynamicImportStyle = async () => {
-      // Remove any existing highlight.js style
-      const existingStyle = document.querySelector("style[data-hljs-theme]");
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-
-      try {
-        const cssModule = isDarkTheme
-          ? await import("highlight.js/styles/github-dark-dimmed.css?inline")
-          : await import("highlight.js/styles/github.css?inline");
-
-        // Create and inject the style
-        const style = document.createElement("style");
-        style.textContent = cssModule.default;
-        style.setAttribute("data-hljs-theme", isDarkTheme ? "dark" : "light");
-        document.head.appendChild(style);
-      } catch (error) {
-        console.warn("Failed to load highlight.js theme:", error);
-      }
-    };
-
-    dynamicImportStyle();
-  }, [resolvedTheme, isDarkTheme]);
+    void ensureHighlightTheme(isDarkTheme);
+  }, [isDarkTheme]);
 
   // Highlight code using highlight.js
   const highlightedCode = useMemo(() => {
@@ -125,48 +102,21 @@ export const CodeBlock = ({ children, className, node: _node, ...props }: CodeBl
   }, [language, codeContent]);
 
   const handleCopy = async () => {
-    try {
-      // Try native clipboard API first (requires HTTPS or localhost)
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(codeContent);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        // Fallback to copy-to-clipboard library for non-secure contexts
-        const success = await copy(codeContent);
-        if (success) {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        } else {
-          console.error("Failed to copy code");
-        }
-      }
-    } catch (err) {
-      // If native API fails, try fallback
-      console.warn("Native clipboard failed, using fallback:", err);
-      const success = await copy(codeContent);
-      if (success) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } else {
-        console.error("Failed to copy code:", err);
-      }
+    const success = await copyText(codeContent);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <pre className="relative my-2 rounded-lg border border-border bg-muted/20 overflow-hidden">
+    <pre className={codeBlockStyles.frame}>
       {/* Header with language label and copy button */}
-      <div className="flex items-center justify-between px-2 py-1 border-b border-border bg-muted/30">
-        <span className="text-xs text-foreground select-none">{language || "text"}</span>
+      <div className={codeBlockStyles.header}>
+        <span className={codeBlockStyles.label}>{language || "text"}</span>
         <button
           onClick={handleCopy}
-          className={cn(
-            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs",
-            "transition-colors duration-200",
-            "hover:bg-accent active:scale-95",
-            copied ? "text-primary" : "text-muted-foreground hover:text-foreground",
-          )}
+          className={cn(codeBlockStyles.copyButtonBase, copied ? "text-primary" : "text-muted-foreground hover:text-foreground")}
           aria-label={copied ? "Copied" : "Copy code"}
           title={copied ? "Copied!" : "Copy code"}
         >
@@ -185,11 +135,8 @@ export const CodeBlock = ({ children, className, node: _node, ...props }: CodeBl
       </div>
 
       {/* Code content */}
-      <div className="overflow-x-auto">
-        <code
-          className={cn("block px-3 py-2 text-sm leading-relaxed", `language-${language}`)}
-          dangerouslySetInnerHTML={{ __html: highlightedCode }}
-        />
+      <div className={codeBlockStyles.codeWrap}>
+        <code className={cn(codeBlockStyles.code, `language-${language}`)} dangerouslySetInnerHTML={{ __html: highlightedCode }} />
       </div>
     </pre>
   );
