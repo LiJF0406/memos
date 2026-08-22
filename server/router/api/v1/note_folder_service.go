@@ -18,11 +18,18 @@ import (
 // user, e.g. "inbox-1". Custom folders may not use this prefix.
 const defaultNoteFolderUIDPrefix = "inbox-"
 
+// getDefaultNoteFolder returns the system default folder owned by the given user.
+func (s *APIV1Service) getDefaultNoteFolder(ctx context.Context, userID int32) (*store.NoteFolder, error) {
+	defaultUID := fmt.Sprintf("%s%d", defaultNoteFolderUIDPrefix, userID)
+	// 同时用 uid 与 creator_id 限定，确保取到的是当前用户的默认文件夹；
+	// 该 uid 是系统保留的确定性键，与数据库唯一约束一致。
+	return s.Store.GetNoteFolder(ctx, &store.FindNoteFolder{UID: &defaultUID, CreatorID: &userID})
+}
+
 // ensureDefaultNoteFolder creates the system default folder for the user if it
 // does not already exist. It is idempotent.
 func (s *APIV1Service) ensureDefaultNoteFolder(ctx context.Context, userID int32) (*store.NoteFolder, error) {
-	isDefault := true
-	folder, err := s.Store.GetNoteFolder(ctx, &store.FindNoteFolder{CreatorID: &userID, IsDefault: &isDefault})
+	folder, err := s.getDefaultNoteFolder(ctx, userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get default note folder")
 	}

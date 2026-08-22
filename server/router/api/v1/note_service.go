@@ -101,8 +101,7 @@ func (s *APIV1Service) loadNoteMessage(ctx context.Context, note *store.Note, fo
 // the default folder does not exist).
 func (s *APIV1Service) resolveFolderIDFromRequest(ctx context.Context, user *store.User, folderName string, foldersMap map[int32]*store.NoteFolder) (*int32, error) {
 	if folderName == "" {
-		isDefault := true
-		defaultFolder, err := s.Store.GetNoteFolder(ctx, &store.FindNoteFolder{CreatorID: &user.ID, IsDefault: &isDefault})
+		defaultFolder, err := s.getDefaultNoteFolder(ctx, user.ID)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to get default note folder")
 		}
