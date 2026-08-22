@@ -151,7 +151,7 @@ const NoteFolderTree = ({
           {children.length > 0 ? (
             <button
               type="button"
-              className="shrink-0 p-0.5 cursor-pointer"
+              className="shrink-0 rounded p-0.5 hover:bg-background/60 cursor-pointer"
               onClick={(event) => {
                 event.stopPropagation();
                 toggle(folder.name);
@@ -190,7 +190,7 @@ const NoteFolderTree = ({
             {children.length > 0 ? (
               <button
                 type="button"
-                className="shrink-0 p-0.5 cursor-pointer"
+                className="shrink-0 rounded p-0.5 hover:bg-background/60 cursor-pointer"
                 onClick={(event) => {
                   event.stopPropagation();
                   toggle(defaultFolder.name);
