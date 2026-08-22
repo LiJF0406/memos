@@ -24,6 +24,8 @@ type NoteFolder struct {
 	ParentID *int32
 	Name     string
 	Shared   bool
+	// IsDefault is true for the system default folder created for each user.
+	IsDefault bool
 }
 
 type FindNoteFolder struct {
@@ -40,6 +42,9 @@ type FindNoteFolder struct {
 	// is nil, it matches root-level folders (parent_id IS NULL).
 	ParentID    *int32
 	ParentIDSet bool
+
+	// IsDefault filters by whether the folder is the system default folder.
+	IsDefault *bool
 }
 
 type UpdateNoteFolder struct {

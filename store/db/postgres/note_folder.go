@@ -8,8 +8,8 @@ import (
 )
 
 func (d *DB) CreateNoteFolder(ctx context.Context, create *store.NoteFolder) (*store.NoteFolder, error) {
-	fields := []string{"uid", "creator_id", "name", "shared"}
-	args := []any{create.UID, create.CreatorID, create.Name, create.Shared}
+	fields := []string{"uid", "creator_id", "name", "shared", "is_default"}
+	args := []any{create.UID, create.CreatorID, create.Name, create.Shared, create.IsDefault}
 	if create.ParentID != nil {
 		fields = append(fields, "parent_id")
 		args = append(args, *create.ParentID)
@@ -65,6 +65,9 @@ func (d *DB) ListNoteFolders(ctx context.Context, find *store.FindNoteFolder) ([
 	if v := find.CreatorID; v != nil {
 		where, args = append(where, "note_folder.creator_id = "+placeholder(len(args)+1)), append(args, *v)
 	}
+	if v := find.IsDefault; v != nil {
+		where, args = append(where, "note_folder.is_default = "+placeholder(len(args)+1)), append(args, *v)
+	}
 	if find.ParentIDSet {
 		if find.ParentID == nil {
 			where = append(where, "note_folder.parent_id IS NULL")
@@ -73,7 +76,7 @@ func (d *DB) ListNoteFolders(ctx context.Context, find *store.FindNoteFolder) ([
 		}
 	}
 
-	query := "SELECT note_folder.id, note_folder.uid, note_folder.creator_id, note_folder.parent_id, note_folder.name, note_folder.shared, note_folder.row_status, note_folder.created_ts, note_folder.updated_ts FROM note_folder WHERE " +
+	query := "SELECT note_folder.id, note_folder.uid, note_folder.creator_id, note_folder.parent_id, note_folder.name, note_folder.shared, note_folder.row_status, note_folder.is_default, note_folder.created_ts, note_folder.updated_ts FROM note_folder WHERE " +
 		strings.Join(where, " AND ") + " ORDER BY note_folder.created_ts ASC, note_folder.id ASC"
 
 	rows, err := d.db.QueryContext(ctx, query, args...)
@@ -93,6 +96,7 @@ func (d *DB) ListNoteFolders(ctx context.Context, find *store.FindNoteFolder) ([
 			&folder.Name,
 			&folder.Shared,
 			&folder.RowStatus,
+			&folder.IsDefault,
 			&folder.CreatedTs,
 			&folder.UpdatedTs,
 		); err != nil {

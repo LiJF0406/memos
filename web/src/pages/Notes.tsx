@@ -8,7 +8,8 @@ import { NOTE_DATE_QUERY_PARAM, NOTE_TAG_QUERY_PARAM } from "@/components/MemoEx
 import NoteListItem from "@/components/Notes/NoteListItem";
 import NoteSearchBar from "@/components/Notes/NoteSearchBar";
 import { extractNoteIdFromName } from "@/helpers/resource-names";
-import { useCreateNote, useImportNote, useNotes } from "@/hooks";
+import { useCreateNote, useImportNote, useNoteFolders, useNotes } from "@/hooks";
+import useCurrentUser from "@/hooks/useCurrentUser";
 import useNavigateTo from "@/hooks/useNavigateTo";
 import type { ListNotesRequest } from "@/types/proto/api/v1/note_service_pb";
 import { NoteSchema } from "@/types/proto/api/v1/note_service_pb";
@@ -20,6 +21,10 @@ const Notes = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedFolderId = searchParams.get("folder");
+  const currentUser = useCurrentUser();
+  const { data: foldersData } = useNoteFolders();
+  const defaultFolder = foldersData?.noteFolders.find((folder) => folder.isDefault && folder.creator === currentUser?.name);
+  const effectiveFolderId = selectedFolderId ?? defaultFolder?.name;
   const selectedDate = searchParams.get(NOTE_DATE_QUERY_PARAM);
   const tag = searchParams.get(NOTE_TAG_QUERY_PARAM) ?? "";
   const [searchValue, setSearchValue] = useState("");
@@ -38,7 +43,7 @@ const Notes = () => {
 
   const listRequest = useMemo(() => {
     const request: Partial<ListNotesRequest> = {
-      folder: selectedFolderId ?? "-",
+      folder: effectiveFolderId ?? "-",
       titleSearch: searchValue || undefined,
       tag: tag || undefined,
       pageSize: 200,
@@ -49,7 +54,7 @@ const Notes = () => {
       request.createdTsBefore = timestampFromDate(dayjs(selectedDate).add(1, "day").startOf("day").toDate());
     }
     return request;
-  }, [selectedFolderId, selectedDate, searchValue, tag]);
+  }, [effectiveFolderId, selectedDate, searchValue, tag]);
   const { data: notesData } = useNotes(listRequest);
   const notes = notesData?.notes ?? [];
 
@@ -67,7 +72,7 @@ const Notes = () => {
       create(NoteSchema, {
         title: t("note.untitled"),
         content: "",
-        folder: selectedFolderId ?? undefined,
+        folder: effectiveFolderId,
       }),
     );
     navigateTo(`/notes/${extractNoteIdFromName(note.name)}`);
@@ -82,7 +87,7 @@ const Notes = () => {
     const note = await importNote.mutateAsync({
       title,
       content,
-      folder: selectedFolderId ?? undefined,
+      folder: effectiveFolderId,
     });
     navigateTo(`/notes/${extractNoteIdFromName(note.name)}`);
   };

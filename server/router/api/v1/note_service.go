@@ -96,9 +96,19 @@ func (s *APIV1Service) loadNoteMessage(ctx context.Context, note *store.Note, fo
 }
 
 // resolveFolderIDFromRequest resolves an optional folder resource name to a
-// folder ID, verifying access. A nil return means the note stays at the root.
-func (s *APIV1Service) resolveFolderIDFromRequest(ctx context.Context, folderName string, foldersMap map[int32]*store.NoteFolder) (*int32, error) {
+// folder ID, verifying access. When the folder name is empty, the note is
+// placed in the user's system default folder (falling back to the root when
+// the default folder does not exist).
+func (s *APIV1Service) resolveFolderIDFromRequest(ctx context.Context, user *store.User, folderName string, foldersMap map[int32]*store.NoteFolder) (*int32, error) {
 	if folderName == "" {
+		isDefault := true
+		defaultFolder, err := s.Store.GetNoteFolder(ctx, &store.FindNoteFolder{CreatorID: &user.ID, IsDefault: &isDefault})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to get default note folder")
+		}
+		if defaultFolder != nil {
+			return &defaultFolder.ID, nil
+		}
 		return nil, nil
 	}
 	folderUID, err := ExtractNoteFolderUIDFromName(folderName)
@@ -142,7 +152,7 @@ func (s *APIV1Service) CreateNote(ctx context.Context, request *v1pb.CreateNoteR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list note folders")
 	}
-	folderID, err := s.resolveFolderIDFromRequest(ctx, request.Note.GetFolder(), foldersMap)
+	folderID, err := s.resolveFolderIDFromRequest(ctx, user, request.Note.GetFolder(), foldersMap)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +419,7 @@ func (s *APIV1Service) UpdateNote(ctx context.Context, request *v1pb.UpdateNoteR
 			content := request.Note.Content
 			update.Content = &content
 		case "folder":
-			folderID, err := s.resolveFolderIDFromRequest(ctx, request.Note.GetFolder(), foldersMap)
+			folderID, err := s.resolveFolderIDFromRequest(ctx, user, request.Note.GetFolder(), foldersMap)
 			if err != nil {
 				return nil, err
 			}
@@ -588,7 +598,7 @@ func (s *APIV1Service) ImportNote(ctx context.Context, request *v1pb.ImportNoteR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list note folders")
 	}
-	folderID, err := s.resolveFolderIDFromRequest(ctx, request.GetFolder(), foldersMap)
+	folderID, err := s.resolveFolderIDFromRequest(ctx, user, request.GetFolder(), foldersMap)
 	if err != nil {
 		return nil, err
 	}

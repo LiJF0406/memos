@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -12,6 +13,29 @@ import (
 	v1pb "github.com/usememos/memos/proto/gen/api/v1"
 	"github.com/usememos/memos/store"
 )
+
+// defaultNoteFolderUIDPrefix is reserved for the system default folder of each
+// user, e.g. "inbox-1". Custom folders may not use this prefix.
+const defaultNoteFolderUIDPrefix = "inbox-"
+
+// ensureDefaultNoteFolder creates the system default folder for the user if it
+// does not already exist. It is idempotent.
+func (s *APIV1Service) ensureDefaultNoteFolder(ctx context.Context, userID int32) (*store.NoteFolder, error) {
+	isDefault := true
+	folder, err := s.Store.GetNoteFolder(ctx, &store.FindNoteFolder{CreatorID: &userID, IsDefault: &isDefault})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get default note folder")
+	}
+	if folder != nil {
+		return folder, nil
+	}
+	return s.Store.CreateNoteFolder(ctx, &store.NoteFolder{
+		UID:       fmt.Sprintf("%s%d", defaultNoteFolderUIDPrefix, userID),
+		CreatorID: userID,
+		Name:      "My Notes",
+		IsDefault: true,
+	})
+}
 
 // CreateNoteFolder creates a note folder.
 func (s *APIV1Service) CreateNoteFolder(ctx context.Context, request *v1pb.CreateNoteFolderRequest) (*v1pb.NoteFolder, error) {
@@ -26,6 +50,9 @@ func (s *APIV1Service) CreateNoteFolder(ctx context.Context, request *v1pb.Creat
 	folderUID, err := ValidateAndGenerateUID(request.NoteFolderId)
 	if err != nil {
 		return nil, err
+	}
+	if strings.HasPrefix(folderUID, defaultNoteFolderUIDPrefix) {
+		return nil, status.Errorf(codes.InvalidArgument, "note folder ID %q is reserved for the system default folder", folderUID)
 	}
 	title := strings.TrimSpace(request.NoteFolder.Title)
 	if title == "" {
@@ -153,6 +180,9 @@ func (s *APIV1Service) UpdateNoteFolder(ctx context.Context, request *v1pb.Updat
 	if err := s.checkNoteFolderWriteAccess(ctx, folder); err != nil {
 		return nil, err
 	}
+	if folder.IsDefault {
+		return nil, status.Errorf(codes.InvalidArgument, "the default note folder cannot be modified")
+	}
 	foldersMap, err := s.listNoteFoldersMap(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list note folders")
@@ -244,6 +274,9 @@ func (s *APIV1Service) DeleteNoteFolder(ctx context.Context, request *v1pb.Delet
 	}
 	if err := s.checkNoteFolderWriteAccess(ctx, folder); err != nil {
 		return nil, err
+	}
+	if folder.IsDefault {
+		return nil, status.Errorf(codes.InvalidArgument, "the default note folder cannot be deleted")
 	}
 	if err := s.Store.DeleteNoteFolder(ctx, &store.DeleteNoteFolder{ID: folder.ID}); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete note folder: %v", err)

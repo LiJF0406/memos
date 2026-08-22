@@ -133,6 +133,7 @@ CREATE TABLE note_folder (
   parent_id INTEGER DEFAULT NULL,
   name TEXT NOT NULL,
   shared INTEGER NOT NULL DEFAULT 0,
+  is_default INTEGER NOT NULL DEFAULT 0,
   row_status TEXT NOT NULL DEFAULT 'NORMAL',
   created_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now')),
   updated_ts BIGINT NOT NULL DEFAULT (strftime('%s', 'now'))

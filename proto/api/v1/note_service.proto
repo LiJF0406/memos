@@ -211,6 +211,9 @@ message NoteFolder {
 
   // Optional. Whether this folder is a shared workspace.
   bool shared = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // Output only. Whether this is the system default folder for the creator.
+  bool is_default = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message CreateNoteRequest {

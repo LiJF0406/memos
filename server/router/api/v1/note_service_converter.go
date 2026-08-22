@@ -349,6 +349,7 @@ func (s *APIV1Service) convertNoteFolderFromStore(ctx context.Context, folder *s
 		Parent:     parentName,
 		Title:      folder.Name,
 		Shared:     folder.Shared,
+		IsDefault:  folder.IsDefault,
 	}, nil
 }
 

@@ -3922,6 +3922,10 @@ components:
                 shared:
                     type: boolean
                     description: Optional. Whether this folder is a shared workspace.
+                isDefault:
+                    readOnly: true
+                    type: boolean
+                    description: Output only. Whether this is the system default folder for the creator.
             description: NoteFolder is a folder for organizing notes. Folders may be nested and shared.
         NoteLink:
             type: object

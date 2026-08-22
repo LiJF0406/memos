@@ -2,6 +2,7 @@ import { create } from "@bufbuild/protobuf";
 import { useSearchParams } from "react-router-dom";
 import NoteFolderTree from "@/components/Notes/NoteFolderTree";
 import { useCreateNoteFolder, useDeleteNoteFolder, useNoteFolders, useUpdateNoteFolder } from "@/hooks";
+import useCurrentUser from "@/hooks/useCurrentUser";
 import type { NoteFolder } from "@/types/proto/api/v1/note_service_pb";
 import { NoteFolderSchema } from "@/types/proto/api/v1/note_service_pb";
 import { useTranslate } from "@/utils/i18n";
@@ -10,11 +11,13 @@ const FOLDER_QUERY_PARAM = "folder";
 
 const NotesSection = () => {
   const t = useTranslate();
+  const currentUser = useCurrentUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedFolderId = searchParams.get(FOLDER_QUERY_PARAM);
 
   const { data: foldersData } = useNoteFolders();
   const folders = foldersData?.noteFolders ?? [];
+  const defaultFolder = folders.find((folder) => folder.isDefault && folder.creator === currentUser?.name);
 
   const createFolder = useCreateNoteFolder();
   const updateFolder = useUpdateNoteFolder();
@@ -72,7 +75,9 @@ const NotesSection = () => {
       </div>
       <NoteFolderTree
         folders={folders}
-        selectedFolderId={selectedFolderId}
+        currentUserName={currentUser?.name}
+        defaultFolder={defaultFolder}
+        selectedFolderId={selectedFolderId ?? defaultFolder?.name ?? null}
         onSelectFolder={updateFolderParam}
         onCreateFolder={handleCreateFolder}
         onRenameFolder={handleRenameFolder}

@@ -209,6 +209,9 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 					return nil, status.Errorf(codes.Internal, "failed to create first user: %v", err)
 				}
 				if created {
+					if _, err := s.ensureDefaultNoteFolder(ctx, user.ID); err != nil {
+						return nil, status.Errorf(codes.Internal, "failed to create default note folder: %v", err)
+					}
 					return convertUserFromStore(user, user), nil
 				}
 				roleToAssign = store.RoleUser
@@ -255,6 +258,9 @@ func (s *APIV1Service) CreateUser(ctx context.Context, request *v1pb.CreateUserR
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
+	}
+	if _, err := s.ensureDefaultNoteFolder(ctx, user.ID); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create default note folder: %v", err)
 	}
 
 	return convertUserFromStore(user, user), nil

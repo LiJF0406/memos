@@ -301,7 +301,9 @@ type NoteFolder struct {
 	// Required. The title of the folder.
 	Title string `protobuf:"bytes,6,opt,name=title,proto3" json:"title,omitempty"`
 	// Optional. Whether this folder is a shared workspace.
-	Shared        bool `protobuf:"varint,7,opt,name=shared,proto3" json:"shared,omitempty"`
+	Shared bool `protobuf:"varint,7,opt,name=shared,proto3" json:"shared,omitempty"`
+	// Output only. Whether this is the system default folder for the creator.
+	IsDefault     bool `protobuf:"varint,8,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -381,6 +383,13 @@ func (x *NoteFolder) GetTitle() string {
 func (x *NoteFolder) GetShared() bool {
 	if x != nil {
 		return x.Shared
+	}
+	return false
+}
+
+func (x *NoteFolder) GetIsDefault() bool {
+	if x != nil {
+		return x.IsDefault
 	}
 	return false
 }
@@ -1375,7 +1384,7 @@ const file_api_v1_note_service_proto_rawDesc = "" +
 	" \x03(\v2\x16.memos.api.v1.NoteLinkB\x03\xe0A\x03R\tbacklinks\x12\x1b\n" +
 	"\x06shared\x18\v \x01(\bB\x03\xe0A\x03R\x06shared:7\xeaA4\n" +
 	"\x11memos.api.v1/Note\x12\fnotes/{note}\x1a\x04name*\x05notes2\x04noteB\t\n" +
-	"\a_folder\"\xba\x03\n" +
+	"\a_folder\"\xde\x03\n" +
 	"\n" +
 	"NoteFolder\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x123\n" +
@@ -1388,7 +1397,9 @@ const file_api_v1_note_service_proto_rawDesc = "" +
 	"\x06parent\x18\x05 \x01(\tB\x1f\xe0A\x01\xfaA\x19\n" +
 	"\x17memos.api.v1/NoteFolderH\x00R\x06parent\x88\x01\x01\x12\x19\n" +
 	"\x05title\x18\x06 \x01(\tB\x03\xe0A\x02R\x05title\x12\x1b\n" +
-	"\x06shared\x18\a \x01(\bB\x03\xe0A\x01R\x06shared:Y\xeaAV\n" +
+	"\x06shared\x18\a \x01(\bB\x03\xe0A\x01R\x06shared\x12\"\n" +
+	"\n" +
+	"is_default\x18\b \x01(\bB\x03\xe0A\x03R\tisDefault:Y\xeaAV\n" +
 	"\x17memos.api.v1/NoteFolder\x12\x1anote_folders/{note_folder}\x1a\x04name*\fnote_folders2\vnote_folderB\t\n" +
 	"\a_parent\"^\n" +
 	"\x11CreateNoteRequest\x12+\n" +

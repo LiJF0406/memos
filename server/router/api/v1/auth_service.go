@@ -213,6 +213,9 @@ func (s *APIV1Service) resolveSSOUser(ctx context.Context, currentUser *store.Us
 		}
 		return nil, status.Errorf(codes.Internal, "failed to create user identity, error: %v", err)
 	}
+	if _, err := s.ensureDefaultNoteFolder(ctx, user.ID); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create default note folder, error: %v", err)
+	}
 	return user, nil
 }
 

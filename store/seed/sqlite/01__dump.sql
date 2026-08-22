@@ -34,6 +34,10 @@ INSERT INTO memo (id,uid,creator_id,content,visibility,pinned,payload) VALUES(9,
 -- 10. Scratchpad Promo (Pinned) — largest id so it sorts above other pinned memos
 INSERT INTO memo (id,uid,creator_id,content,visibility,pinned,payload) VALUES(10,'scratchpad0001',1,replace('## 🧩 Try Memos Scratchpad\n\nA lightweight visual canvas for quick thoughts, links, images, files, and small cards before they become polished notes.\n\n[Open Scratchpad →](https://usememos.com/scratchpad)\n\n| Need | Scratchpad helps you |\n|------|----------------------|\n| Capture fast | Double-click to add notes |\n| Arrange freely | Drag cards around |\n| Add context | Attach files, links, and images |\n| Move around | Zoom and pan without setup |\n\n### Local-first\n\nYour Scratchpad cards stay in your browser. Memos does not access, sync, or store them.','\n',char(10)),'PUBLIC',1,'{"tags":["scratchpad"],"property":{"hasLink":true}}');
 
+-- Default note folders for demo users
+INSERT INTO note_folder (uid,creator_id,parent_id,name,shared,is_default) VALUES('inbox-1',1,NULL,'My Notes',0,1);
+INSERT INTO note_folder (uid,creator_id,parent_id,name,shared,is_default) VALUES('inbox-2',2,NULL,'My Notes',0,1);
+
 -- Memo Relations
 INSERT INTO memo_relation VALUES(6,1,'COMMENT');     -- Alice comments on Welcome
 INSERT INTO memo_relation VALUES(7,3,'COMMENT');     -- Alice comments on Git Cheat Sheet
