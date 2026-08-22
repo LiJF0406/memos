@@ -14,6 +14,22 @@ const shouldRetry = (failureCount: number, error: unknown): boolean => {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // BigInt 安全的查询键哈希：查询键可能包含 protobuf 消息（如 Timestamp），
+      // 其 int64 字段在 protobuf-es 中是 bigint，默认 JSON.stringify 会抛错。
+      queryKeyHashFn: (queryKey: unknown): string =>
+        JSON.stringify(queryKey, (_, value) => {
+          if (typeof value === "bigint") return value.toString();
+          if (value && typeof value === "object" && !Array.isArray(value) && value.constructor === Object) {
+            // 保持 React Query 默认的稳定键序：对象键排序后序列化
+            return Object.keys(value as object)
+              .sort()
+              .reduce<Record<string, unknown>>((acc, key) => {
+                acc[key] = (value as Record<string, unknown>)[key];
+                return acc;
+              }, {});
+          }
+          return value;
+        }),
       // Balanced approach: Fresh enough for collaboration, but reduces unnecessary refetches
       // Individual queries can override with shorter staleTime if needed (e.g., notifications)
       staleTime: 1000 * 30, // 30 seconds (increased from 10s for better performance)
