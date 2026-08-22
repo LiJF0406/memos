@@ -85,11 +85,11 @@ describe("PlainEditor 自动符号配对", () => {
     expect(textarea.selectionStart).toBe(2);
   });
 
-  it("反引号自动配对（行内代码场景）", () => {
+  it("反引号不参与自动配对（交给 code mark 输入规则转换行内代码）", () => {
     const { textarea } = setup("");
-    press(textarea, "`");
-    expect(textarea.value).toBe("``");
-    expect(textarea.selectionStart).toBe(1);
+    const event = press(textarea, "`");
+    expect(event.defaultPrevented).toBe(false);
+    expect(textarea.value).toBe("");
   });
 
   it("光标夹在一对符号中间按 Backspace 成对删除", () => {

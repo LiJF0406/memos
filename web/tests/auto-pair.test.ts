@@ -8,13 +8,12 @@ function decide(input: string, opts: { prev?: string; next?: string; selected?: 
 
 describe("AUTO_PAIRS 映射", () => {
   it("包含常用符号集且自配对符号左右一致", () => {
-    expect(Object.keys(AUTO_PAIRS).sort()).toEqual(["(", "'", '"', "[", "`", "{"].sort());
+    expect(Object.keys(AUTO_PAIRS).sort()).toEqual(["(", "'", '"', "[", "{"].sort());
     expect(AUTO_PAIRS["("]).toBe(")");
     expect(AUTO_PAIRS["["]).toBe("]");
     expect(AUTO_PAIRS["{"]).toBe("}");
     expect(AUTO_PAIRS["'"]).toBe("'");
     expect(AUTO_PAIRS['"']).toBe('"');
-    expect(AUTO_PAIRS["`"]).toBe("`");
   });
 });
 
@@ -50,7 +49,11 @@ describe("resolveAutoPair：引号类", () => {
   it("行首/行尾等边界环境自动配对", () => {
     expect(decide("'")).toEqual({ type: "pair", open: "'", close: "'" });
     expect(decide('"', { prev: " " })).toEqual({ type: "pair", open: '"', close: '"' });
-    expect(decide("`", { next: " " })).toEqual({ type: "pair", open: "`", close: "`" });
+  });
+
+  it("反引号不参与自动配对（交给 code mark 输入规则转换）", () => {
+    expect(decide("`")).toBeNull();
+    expect(decide("`", { next: " " })).toBeNull();
   });
 
   it("前一字符是 word 字符时不配对（don't 缩写场景）", () => {
@@ -99,7 +102,6 @@ describe("shouldDeletePair：成对删除判断", () => {
     expect(shouldDeletePair("{", "}")).toBe(true);
     expect(shouldDeletePair("'", "'")).toBe(true);
     expect(shouldDeletePair('"', '"')).toBe(true);
-    expect(shouldDeletePair("`", "`")).toBe(true);
   });
 
   it("非配对组合不删除", () => {
