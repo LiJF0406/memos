@@ -10,7 +10,6 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { NoteFolder } from "@/types/proto/api/v1/note_service_pb";
@@ -103,9 +102,13 @@ const NoteFolderTree = ({
       <span className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="ghost" size="icon" className="size-4" onClick={(event) => event.stopPropagation()}>
-              <MoreHorizontalIcon className="text-muted-foreground" />
-            </Button>
+            <button
+              type="button"
+              className="shrink-0 rounded p-0.5 hover:bg-background/60 cursor-pointer"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <MoreHorizontalIcon className="w-3.5 h-auto text-muted-foreground" />
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" sideOffset={2}>
             <DropdownMenuItem onClick={() => onCreateFolder(folder.name)}>
@@ -148,7 +151,7 @@ const NoteFolderTree = ({
           {children.length > 0 ? (
             <button
               type="button"
-              className="shrink-0 p-0.5"
+              className="shrink-0 p-0.5 cursor-pointer"
               onClick={(event) => {
                 event.stopPropagation();
                 toggle(folder.name);
@@ -187,7 +190,7 @@ const NoteFolderTree = ({
             {children.length > 0 ? (
               <button
                 type="button"
-                className="shrink-0 p-0.5"
+                className="shrink-0 p-0.5 cursor-pointer"
                 onClick={(event) => {
                   event.stopPropagation();
                   toggle(defaultFolder.name);
